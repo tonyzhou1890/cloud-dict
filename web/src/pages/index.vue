@@ -9,13 +9,14 @@
         <el-dropdown :hide-on-click="false">
           <span class="menu">
             <el-icon size="26" color="white">
-              <el-menu />
+              <!-- 这里大写，否则会出现 Menu 组件注册但未使用的提示 -->
+              <Menu />
             </el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item
-                v-for="(item, index) in menu"
+                v-for="(item, index) in menuList"
                 :key="index"
                 class="menu-item"
               >
@@ -44,7 +45,7 @@
           placeholder="Please input a word"
         />
         <el-icon class="search-icon" size="26" color="#333">
-          <el-search />
+          <search />
         </el-icon>
       </div>
     </section>
@@ -67,7 +68,7 @@
 <script>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { Menu as ElMenu, Search as ElSearch } from "@element-plus/icons";
+import { Menu, Search } from "@element-plus/icons";
 
 export default {
   setup() {
@@ -90,7 +91,7 @@ export default {
     }
 
     // 菜单
-    const menu = ref([
+    const menuList = ref([
       {
         text: "导出",
         key: "export",
@@ -104,12 +105,12 @@ export default {
     return {
       word,
       handleSearch,
-      menu,
+      menuList,
     };
   },
   components: {
-    ElMenu,
-    ElSearch,
+    Menu,
+    Search,
   },
 };
 </script>
@@ -215,6 +216,9 @@ export default {
 
 @media screen and (max-width: 500px) {
   .wrapper {
+    .header {
+      padding: 0 15px;
+    }
     .content {
       .search-wrapper {
         margin-top: 50px;

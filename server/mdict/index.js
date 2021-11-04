@@ -125,7 +125,7 @@ class Dict {
    * 处理结果的图片、样式等
    */
   _processData(entry, ctx) {
-    entry.rawDefinition = entry.definition
+    // entry.rawDefinition = entry.definition
     Object.keys(processor.common).map(key => {
       let handler = processor.common[key]
       if (ctx.processor && typeof ctx.processor[key] === 'function') {

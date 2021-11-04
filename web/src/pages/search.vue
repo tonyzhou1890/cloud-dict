@@ -30,7 +30,7 @@
               :class="item.expand === false ? 'shrink' : ''"
               @click="handleExpand(index)"
             >
-              <el-arrow-down-bold />
+              <arrow-down-bold />
             </el-icon>
           </div>
           <div
@@ -67,7 +67,7 @@
 import { ref, nextTick, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ArrowDownBold as ElArrowDownBold } from "@element-plus/icons";
+import { ArrowDownBold } from "@element-plus/icons";
 import { searchWord, fuzzySearch } from "../services/api";
 
 export default {
@@ -201,7 +201,7 @@ export default {
     };
   },
   components: {
-    ElArrowDownBold,
+    ArrowDownBold,
   },
 };
 </script>
@@ -326,7 +326,7 @@ export default {
   }
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 1000px) {
   .wrapper {
     min-height: 100%;
     margin: 0;

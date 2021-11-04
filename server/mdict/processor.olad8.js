@@ -7,21 +7,21 @@ const { getAppendix } = require('../utils/util')
  */
 function image(entry, ctx) {
   // 图标
-  const reg = /<img.*?src="(.*?)".*?>/g
+  const reg = /<img.*?src=(.*?)(\s|>|\/>)/g
   entry.definition = entry.definition.replace(reg, (str, img) => {
     if (img) {
-      img = img.trim()
-      let appendix = getAppendix(img)
-      let result = ctx.mdd.lookup(`${img}`)
+      let imgTemp = img.trim().replace(/\//g, '//').replace(/['"]/g, '')
+      let appendix = getAppendix(imgTemp)
+      let result = ctx.mdd.lookup(`${imgTemp}`)
       console.log(img, result)
       if (result.definition) {
         // return `<img src="data:image/${appendix};base64,${result.definition}" >`
-        return str.replace(/src="(.*?)"/, (str2, img2) => {
-          return `src="data:image/${appendix};base64,${result.definition}"`
+        return str.replace(img, (str2, img2) => {
+          return `data:image/${appendix};base64,${result.definition}`
         })
       }
     }
-    
+
     return ''
   })
   return entry

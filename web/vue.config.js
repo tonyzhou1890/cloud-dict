@@ -10,5 +10,16 @@ module.exports = {
           isCustomElement: tag => ['dict-content'].includes(tag) || tag.startsWith('xy-')
         }
       }))
-  }
+  },
+  configureWebpack: {
+    plugins: [
+      require('unplugin-vue-components/webpack')({
+        resolvers: [
+          require('unplugin-vue-components/resolvers').ElementPlusResolver()
+        ]
+      }),
+    ],
+  },
+  // 是否为生产环境构建生成 source map？
+  productionSourceMap: false,
 }

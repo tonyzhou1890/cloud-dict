@@ -1,7 +1,7 @@
 <template>
   <router-view v-slot="{ Component }" class="router-view">
     <transition
-      enter-active-class="animate__animated animate__bounceInRight animate__delay-1s"
+      enter-active-class="animate__animated animate__bounceInRight animate__delay"
       leave-active-class="animate__animated animate__bounceOutLeft"
     >
       <component :is="Component" />
