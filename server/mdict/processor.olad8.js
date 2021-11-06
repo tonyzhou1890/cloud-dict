@@ -2,8 +2,8 @@ const { getAppendix } = require('../utils/util')
 
 /**
  * 处理图片
- * @param {*} entry 
- * @param {*} ctx 
+ * @param {*} entry 词条
+ * @param {*} ctx 词典
  */
 function image(entry, ctx) {
   // 图标

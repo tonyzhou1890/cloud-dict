@@ -1,40 +1,14 @@
 const { getAppendix } = require('../utils/util')
 
-
-// /**
-//  * 处理图片
-//  * @param {*} entry 
-//  * @param {*} ctx 
-//  */
-// function image(entry, ctx) {
-//   // 图标
-//   const reg = /<img.*?src="(.*?)".*?>/g
-//   entry.definition = entry.definition.replace(reg, (str, img) => {
-//     if (img) {
-//       img = img.trim()
-//       // \\033E5C32.png
-//       // 部分图片找到的字符串前后存在 \x1E\x1F，要将这两个去掉
-//       img = img.replace(/[\x1E\x1F]/g, '')
-//       let appendix = getAppendix(img)
-//       let result = ctx.mdd.lookup(`\\${img}`)
-//       if (result.definition) {
-//         // return `<img src="data:image/${appendix};base64,${result.definition}" >`
-//         return str.replace(/src="(.*?)"/, (str2, img2) => {
-//           return `src="data:image/${appendix};base64,${result.definition}"`
-//         })
-//       }
-//     }
-
-//     return ''
-//   })
-//   return entry
-// }
 /**
  * 处理图片
- * @param {*} entry 
- * @param {*} ctx 
+ * @param {*} entry 词条
+ * @param {*} ctx 词典
+ * @param {object} config
  */
-function image(entry, ctx) {
+function image(entry, ctx, config = {}) {
+  if (!ctx.mdd) return entry
+
   // 图标
   const reg = /<img.*?src=(.*?)(\s|>|\/>)/g
   entry.definition = entry.definition.replace(reg, (str, img) => {
@@ -44,13 +18,36 @@ function image(entry, ctx) {
       // 部分图片找到的字符串前后存在 \x1E\x1F，要将这两个去掉
       imgTemp = imgTemp.replace(/[\x1E\x1F'"]/g, '')
       imgTemp = imgTemp.replace('file://', '')
-      console.log(img, imgTemp)
+
       let appendix = getAppendix(imgTemp)
-      let result = ctx.mdd.lookup(`\\${imgTemp}`)
+      let result = null
+
+      // 检查缓存
+      if (ctx.cache && ctx.cache.has(imgTemp)) {
+        // console.log('cache hit')
+        result = ctx.cache.get(imgTemp)
+      } else {
+        // 查询
+        result = ctx.mdd.lookup(`\\${imgTemp}`)
+        if (ctx.cache) {
+          ctx.cache.set(imgTemp, result)
+        }
+      }
+
       if (result.definition) {
-        // return `<img src="data:image/${appendix};base64,${result.definition}" >`
+        entry.resource[imgTemp] = {
+          type: 'image',
+          appendix,
+          definition: result.definition
+        }
         return str.replace(img, (str2, img2) => {
-          return `"data:image/${appendix};base64,${result.definition}"`
+          // 替换为 base64
+          if (config.replace !== false) {
+            return `"data:image/${appendix};base64,${result.definition}"`
+          } else {
+            // 或者仅仅规范化原字符串
+            return `"${imgTemp}"`
+          }
         })
       }
     }
@@ -64,16 +61,44 @@ function image(entry, ctx) {
  * 处理样式
  * @param {*} entry 
  * @param {*} ctx 
+ * @param {object} config
  */
-function style(entry, ctx) {
+function style(entry, ctx, config) {
   if (!ctx.mdd) return entry
 
   const reg = /<link.*?href="(.*?)".*?>/g
   entry.definition = entry.definition.replace(reg, (str, file) => {
     if (file) {
-      let result = ctx.mdd.lookup(`\\${file}`)
+      let result = null
+
+      // 检查缓存
+      if (ctx.cache && ctx.cache.has(file)) {
+        console.log('css cache hit')
+        result = ctx.cache.get(file)
+      } else {
+        console.log('css cache miss')
+        // 查询
+        result = ctx.mdd.lookup(`\\${file}`)
+        if (ctx.cache) {
+          ctx.cache.set(file, result)
+        }
+      }
+
       if (result.definition) {
-        return str.replace(file, `data:text/css;base64,${result.definition}`)
+        entry.resource[file] = {
+          type: 'style',
+          appendix: 'css',
+          definition: result.definition
+        }
+        return str.replace(file, (str2, img2) => {
+          // 替换为 base64
+          if (config.replace !== false) {
+            return `data:text/css;base64,${result.definition}`
+          } else {
+            // 或者仅仅规范化原字符串
+            return `${file}`
+          }
+        })
       }
     }
 
@@ -82,43 +107,47 @@ function style(entry, ctx) {
   return entry
 }
 
-// /**
-//  * 处理发音
-//  * @param {*} entry 
-//  * @param {*} ctx 
-//  */
-// function sound(entry, ctx) {
-//   if (!ctx.mdd) return entry
-
-//   const reg = /<a.*?href="(.*?)".*?>/g
-//   entry.definition = entry.definition.replace(reg, (str, file) => {
-//     if (file.startsWith('sound://')) {
-//       let result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)
-//       let appendix = getAppendix(file)
-//       if (result.definition) {
-//         return str.replace(file, `data:audio/${appendix};base64,${result.definition}`)
-//       }
-//     }
-
-//     return ''
-//   })
-//   return entry
-// }
 /**
  * 处理发音
  * @param {*} entry 
  * @param {*} ctx 
+ * @param {object} config
  */
-function sound(entry, ctx) {
+function sound(entry, ctx, config) {
   if (!ctx.mdd) return entry
 
   const reg = /<a.*?href="(.*?)"(\s|>|\/>)/g
   entry.definition = entry.definition.replace(reg, (str, file) => {
     if (file.startsWith('sound://')) {
-      let result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)
+      // 如果去除 sound，直接替换为 javascript:void(0)
+      if (config.soundRemove === true) {
+        return str.replace(file, 'javascript:void(0);')
+      }
+      let result = null
       let appendix = getAppendix(file)
+
+      // 检查缓存
+      if (ctx.cache && ctx.cache.has(file)) {
+        result = ctx.cache.get(file)
+      } else {
+        // 查询
+        result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)
+        if (ctx.cache) {
+          ctx.cache.set(file, result)
+        }
+      }
       if (result.definition) {
-        return str.replace(file, `data:audio/${appendix};base64,${result.definition}`)
+        entry.resource[file] = {
+          type: 'audio',
+          appendix,
+          definition: result.definition
+        }
+        // 替换为 base64
+        if (config.replace !== false) {
+          return str.replace(file, `data:audio/${appendix};base64,${result.definition}`)
+        } else {
+          return str
+        }
       }
     }
 

@@ -40,33 +40,110 @@ class Dict {
    */
   lookup(word) {
     return this.actionInList((item) => {
-      const data = {
-        dictName: item.name,
-        dictId: item.dictId
-      }
-      // 最多三次查找
-      // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
-      data.result = item.mdx.lookup(word)
+      const data = this.lookupWithCtx(word, item, { replace: true })
+      // delete data.result.resource
+      return data
+    })
+  }
+
+  /**
+   * 指定字典查词
+   * @param {*} word 
+   * @param {*} ctx 
+   * @param {*} config
+   * @returns 
+   * ```
+   * {
+   *    dictName: '',
+   *    dictId: '',
+   *    result: {
+   *      key: '',
+   *      definition: '',
+   *      resource: {}
+   *    }
+   * }
+   * ```
+   */
+  lookupWithCtx(word, ctx, config = {}) {
+    const data = {
+      dictName: ctx.name,
+      dictId: ctx.dictId
+    }
+    // 查找缓存
+    if (ctx.cache && ctx.cache.has(word)) {
+      data.result = ctx.cache.get(word)
+    }
+    // 最多三次查找
+    // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
+    else {
+      data.result = ctx.mdx.lookup(word)
       if (!data.result.definition) {
         // 首字母小写
         if (util.isLowerCase(word[0])) {
-          data.result = item.mdx.lookup(
+          data.result = ctx.mdx.lookup(
             `${word[0].toUpperCase()}${word.substr(1)}`
           )
           if (!data.result.definition) {
-            data.result = item.mdx.lookup(word.toUpperCase())
+            data.result = ctx.mdx.lookup(word.toUpperCase())
           }
         } else if (util.isUpperCase(word[0])) {
           // 小写
-          data.result = item.mdx.lookup(word.toLowerCase())
+          data.result = ctx.mdx.lookup(word.toLowerCase())
         }
       }
-      // 如果有释义，则对词条进行处理
-      if (data.result.definition) {
-        data.result = this._processData(data.result, item)
+      // 存到缓存
+      if (ctx.cache) {
+        ctx.cache.set(word, {
+          keyText: data.result.keyText,
+          definition: data.result.definition
+        })
       }
-      return data
-    })
+    }
+    // 如果有释义，则对词条进行处理
+    if (data.result.definition) {
+      data.result = this._processData(data.result, ctx, config)
+    }
+    return data
+  }
+
+  /**
+   * 批量查询--只能查询某一个字典
+   * @param {array} words
+   * @param {string} dictId
+   * @param {function} callback 每查完一个单词就调用一次，参数为单词索引、单词、结果
+   * @returns array
+   */
+  lookupBatch(words, dictId, callback) {
+    if (!dictId) {
+      return false
+    }
+    const ctx = this.dict.find(v => v.dictId === dictId)
+    if (!ctx) {
+      return false
+    }
+
+    const config = {
+      replace: false,
+      soundRemove: true
+    }
+    const res = {
+      source: {},
+      list: []
+    }
+    let temp = null
+    for (let i = 0; i < words.length; i++) {
+      temp = this.lookupWithCtx(words[i], ctx, config)
+
+      if (typeof callback === 'function') {
+        callback(i, words[i], temp)
+      }
+
+      Object.assign(res.source, temp.result.resource)
+      delete temp.result.resource
+      res.list.push(temp.result)
+    }
+
+    return res
   }
 
   /**
@@ -124,14 +201,21 @@ class Dict {
   /**
    * 处理结果的图片、样式等
    */
-  _processData(entry, ctx) {
+  _processData(entry, ctx, config = {}) {
+    // 设置
+    let defaultConfig = {
+      replace: true, // 资源替换为 base64
+    }
+    config = Object.assign({}, defaultConfig, config)
+    // 资源 map
+    entry.resource = {}
     // entry.rawDefinition = entry.definition
     Object.keys(processor.common).map(key => {
       let handler = processor.common[key]
       if (ctx.processor && typeof ctx.processor[key] === 'function') {
         handler = ctx.processor[key]
       }
-      entry = handler(entry, ctx)
+      entry = handler(entry, ctx, config)
     })
     return entry
   }

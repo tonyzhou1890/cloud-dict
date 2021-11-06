@@ -17,6 +17,14 @@ const fuzzySearchSchema = Joi.object({
 })
 
 /**
+ * 批量查询
+ */
+const queryPatchSchema = Joi.object({
+  words: Joi.string().required(),
+  dictId: Joi.string().required()
+})
+
+/**
  * 定位查找单词
  */
 const parseDefinationSchema = Joi.object({
@@ -27,5 +35,6 @@ const parseDefinationSchema = Joi.object({
 module.exports = {
   searchWordSchema,
   fuzzySearchSchema,
-  parseDefinationSchema
+  parseDefinationSchema,
+  queryPatchSchema
 }
