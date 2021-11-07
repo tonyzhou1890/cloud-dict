@@ -47,7 +47,7 @@ class Dict {
       return {
         name: item.name,
         id: item.dictId,
-        type: item.type,
+        disabled: item.disabled,
       }
     })
   }
