@@ -1,4 +1,4 @@
-const { getAppendix } = require('../utils/util')
+const { getSuffix } = require('../utils/util')
 
 /**
  * 处理图片
@@ -19,7 +19,7 @@ function image(entry, ctx, config = {}) {
       imgTemp = imgTemp.replace(/[\x1E\x1F'"]/g, '')
       imgTemp = imgTemp.replace('file://', '')
 
-      let appendix = getAppendix(imgTemp)
+      let suffix = getSuffix(imgTemp)
       let result = null
 
       // 检查缓存
@@ -37,13 +37,13 @@ function image(entry, ctx, config = {}) {
       if (result.definition) {
         entry.resource[imgTemp] = {
           type: 'image',
-          appendix,
+          suffix,
           definition: result.definition
         }
         return str.replace(img, (str2, img2) => {
           // 替换为 base64
           if (config.replace !== false) {
-            return `"data:image/${appendix};base64,${result.definition}"`
+            return `"data:image/${suffix};base64,${result.definition}"`
           } else {
             // 或者仅仅规范化原字符串
             return `"${imgTemp}"`
@@ -87,7 +87,7 @@ function style(entry, ctx, config) {
       if (result.definition) {
         entry.resource[file] = {
           type: 'style',
-          appendix: 'css',
+          suffix: 'css',
           definition: result.definition
         }
         return str.replace(file, (str2, img2) => {
@@ -124,7 +124,7 @@ function sound(entry, ctx, config) {
         return str.replace(file, 'javascript:void(0);')
       }
       let result = null
-      let appendix = getAppendix(file)
+      let suffix = getSuffix(file)
 
       // 检查缓存
       if (ctx.cache && ctx.cache.has(file)) {
@@ -139,12 +139,12 @@ function sound(entry, ctx, config) {
       if (result.definition) {
         entry.resource[file] = {
           type: 'audio',
-          appendix,
+          suffix,
           definition: result.definition
         }
         // 替换为 base64
         if (config.replace !== false) {
-          return str.replace(file, `data:audio/${appendix};base64,${result.definition}`)
+          return str.replace(file, `data:audio/${suffix};base64,${result.definition}`)
         } else {
           return str
         }

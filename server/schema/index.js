@@ -19,7 +19,7 @@ const fuzzySearchSchema = Joi.object({
 /**
  * 批量查询
  */
-const queryPatchSchema = Joi.object({
+const queryBatchSchema = Joi.object({
   words: Joi.string().required(),
   dictId: Joi.string().required()
 })
@@ -36,5 +36,5 @@ module.exports = {
   searchWordSchema,
   fuzzySearchSchema,
   parseDefinationSchema,
-  queryPatchSchema
+  queryBatchSchema
 }

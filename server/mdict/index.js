@@ -1,10 +1,14 @@
 const Mdict = require('js-mdict').default
+const { v1: uuidV1 } = require('uuid')
 const dictConfig = require('./config')
 const processor = require('./processor')
 const util = require('../utils/util')
 
 class Dict {
   constructor(dictList) {
+    // 任务 map
+    this.task = new Map()
+
     // console.log(dictList)
     this.dict = dictList.map(item => {
       return {
@@ -32,6 +36,51 @@ class Dict {
     return this.dict.map(item => {
       return func(item)
     })
+  }
+
+  /**
+   * 获取词典列表
+   * @returns 
+   */
+  getDictList() {
+    return this.dict.map(item => {
+      return {
+        name: item.name,
+        id: item.dictId,
+        type: item.type,
+      }
+    })
+  }
+
+  /**
+   * 开始指定任务
+   * @param {*} name 
+   * @param  {...any} rest 
+   * @returns uuid
+   */
+  startTask(name, ...rest) {
+    const uuid = uuidV1()
+    if (name && typeof this[name] === 'function') {
+      this.task.set(uuid, true)
+      setTimeout(() => {
+        this[name](...rest)
+      }, 0)
+      return uuid
+    }
+    return false
+  }
+
+  /**
+   * 结束任务
+   * @param {*} uuid 
+   * @returns 
+   */
+  abortTask(uuid) {
+    if (uuid) {
+      this.task.delete(uuid)
+      return true
+    }
+    return false
   }
 
   /**
@@ -91,12 +140,11 @@ class Dict {
           data.result = ctx.mdx.lookup(word.toLowerCase())
         }
       }
+      // 加入原词
+      data.result.word = word
       // 存到缓存
       if (ctx.cache) {
-        ctx.cache.set(word, {
-          keyText: data.result.keyText,
-          definition: data.result.definition
-        })
+        ctx.cache.set(word, { ...data.result })
       }
     }
     // 如果有释义，则对词条进行处理
@@ -110,10 +158,12 @@ class Dict {
    * 批量查询--只能查询某一个字典
    * @param {array} words
    * @param {string} dictId
-   * @param {function} callback 每查完一个单词就调用一次，参数为单词索引、单词、结果
+   * @param {function} callback 每查完一个单词就调用一次，参数为单词索引、单词、结果、当前所有结果
+   * @param {string} taskUuid 是否有任务 uuid，如果有，需要据此判断是否结束循环
    * @returns array
    */
-  lookupBatch(words, dictId, callback) {
+  lookupBatch(words, dictId, callback, taskUuid) {
+    // console.log(words)
     if (!dictId) {
       return false
     }
@@ -127,22 +177,28 @@ class Dict {
       soundRemove: true
     }
     const res = {
-      source: {},
+      resource: {},
       list: []
     }
     let temp = null
     for (let i = 0; i < words.length; i++) {
+      if (taskUuid && !this.task.get(taskUuid)) break
+
       temp = this.lookupWithCtx(words[i], ctx, config)
 
-      if (typeof callback === 'function') {
-        callback(i, words[i], temp)
-      }
-
-      Object.assign(res.source, temp.result.resource)
+      Object.assign(res.resource, temp.result.resource)
       delete temp.result.resource
       res.list.push(temp.result)
+
+      if (typeof callback === 'function') {
+        callback(i, words[i], temp, res)
+      }
     }
 
+    // 如果在任务中，需要标记任务结束
+    if (taskUuid) {
+      this.task.set(taskUuid, false)
+    }
     return res
   }
 

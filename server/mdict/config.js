@@ -3,7 +3,7 @@ const { cambridge, olad8 } = require('./processor')
 const LRU = require('lru-cache')
 
 const lruConfig = {
-  max: 10000
+  max: 200
 }
 
 const dictConfig = [
@@ -91,6 +91,7 @@ const dictConfig = [
   {
     name: '大英百科',
     dictId: 'Britannica Encyclopedia',
+    type: 'encyclopedia',
     path: `${pathPrefix}/2.0/大英百科/`,
     mdx: 'Britannica Encyclopedia.mdx',
     cache: new LRU(lruConfig)

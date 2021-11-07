@@ -8,6 +8,10 @@ const routes = [
   {
     path: '/search',
     component: () => import('./pages/search')
+  },
+  {
+    path: '/export',
+    component: () => import('./pages/export')
   }
 ]
 

@@ -4,18 +4,23 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+var app = express();
+var server = require('http').Server(app)
+// 需要在加载 router 之前，否则会报错：router.ws is not a function
+// https://www.npmjs.com/package/express-ws
+var expressWs = require('express-ws')(app, server)
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
-var app = express();
 
-app.all("*",function(req,res,next){
+app.all("*", function (req, res, next) {
   //设置允许跨域的域名，*代表允许任意域名跨域
-  res.header("Access-Control-Allow-Origin","*");
+  res.header("Access-Control-Allow-Origin", "*");
   //允许的header类型
-  res.header("Access-Control-Allow-Headers","content-type, token");
+  res.header("Access-Control-Allow-Headers", "content-type, token");
   //跨域允许的请求方式 
-  res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
+  res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS");
   if (req.method.toLowerCase() == 'options')
     res.sendStatus(200);  //让options尝试请求快速结束
   else
@@ -36,12 +41,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -57,4 +62,4 @@ process.on('uncaughtException', function (err) {
   res.send(err);
 });
 
-module.exports = app;
+module.exports = { app, server };

@@ -1,4 +1,4 @@
-const { getAppendix } = require('../utils/util')
+const { getSuffix } = require('../utils/util')
 
 /**
  * 处理图片
@@ -11,13 +11,13 @@ function image(entry, ctx) {
   entry.definition = entry.definition.replace(reg, (str, img) => {
     if (img) {
       let imgTemp = img.trim().replace(/\//g, '//').replace(/['"]/g, '')
-      let appendix = getAppendix(imgTemp)
+      let suffix = getSuffix(imgTemp)
       let result = ctx.mdd.lookup(`${imgTemp}`)
       console.log(img, result)
       if (result.definition) {
-        // return `<img src="data:image/${appendix};base64,${result.definition}" >`
+        // return `<img src="data:image/${suffix};base64,${result.definition}" >`
         return str.replace(img, (str2, img2) => {
-          return `data:image/${appendix};base64,${result.definition}`
+          return `data:image/${suffix};base64,${result.definition}`
         })
       }
     }

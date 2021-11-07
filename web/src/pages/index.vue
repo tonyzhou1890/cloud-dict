@@ -5,10 +5,10 @@
       <div class="logo-wrapper">
         <img class="logo" src="../assets/logo.png" />
       </div>
-      <div v-if="false" class="menu-wrapper">
-        <el-dropdown :hide-on-click="false">
+      <div class="menu-wrapper">
+        <el-dropdown :hide-on-click="false" @command="handleDropMenu">
           <span class="menu">
-            <el-icon size="26" color="white">
+            <el-icon :size="26" color="white">
               <!-- 这里大写，否则会出现 Menu 组件注册但未使用的提示 -->
               <Menu />
             </el-icon>
@@ -18,6 +18,7 @@
               <el-dropdown-item
                 v-for="(item, index) in menuList"
                 :key="index"
+                :command="item.key"
                 class="menu-item"
               >
                 {{ item.text }}
@@ -44,7 +45,7 @@
           @keypress="handleSearch"
           placeholder="Please input a word"
         />
-        <el-icon class="search-icon" size="26" color="#333">
+        <el-icon class="search-icon" :size="26" color="#333">
           <search />
         </el-icon>
       </div>
@@ -55,6 +56,10 @@
         Powered by
         <a target="_blank" href="https://github.com/terasum/js-mdict"
           >js-mdict</a
+        >
+        |
+        <a target="_blank" href="https://github.com/bbottema/js-epub-maker"
+          >js-epub-maker</a
         >
         | <a target="_blank" href="https://vuejs.org/">Vue</a> |
         <a target="_blank" href="https://element-plus.gitee.io/zh-CN/"
@@ -93,7 +98,7 @@ export default {
     // 菜单
     const menuList = ref([
       {
-        text: "导出",
+        text: "Export",
         key: "export",
       },
       // {
@@ -102,10 +107,18 @@ export default {
       // },
     ]);
 
+    // 点击菜单
+    function handleDropMenu(key) {
+      if (key === "export") {
+        router.push("/export");
+      }
+    }
+
     return {
       word,
       handleSearch,
       menuList,
+      handleDropMenu,
     };
   },
   components: {

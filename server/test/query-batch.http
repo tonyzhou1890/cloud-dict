@@ -1,4 +1,4 @@
-POST http://localhost:8500/query-patch HTTP/1.1
+POST http://localhost:8500/query-batch HTTP/1.1
 content-type: application/json
 
 {

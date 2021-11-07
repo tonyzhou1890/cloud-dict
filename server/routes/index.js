@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const { Dict, dictConfig } = require('../mdict')
-const { searchWordSchema, fuzzySearchSchema, queryPatchSchema } = require('../schema')
-const { responseCode } = require('../utils/config')
+const { searchWordSchema, fuzzySearchSchema, queryBatchSchema } = require('../schema')
+const { responseCode, batchConfig } = require('../utils/config')
 
 // 加载字典
 const dictStore = new Dict(dictConfig)
@@ -54,11 +54,22 @@ router.get('/fuzzySearch', function (req, res, next) {
   return res.send(response)
 })
 
+/** 字典列表 */
+router.get('/dict/list', function (req, res, next) {
+  let response = {}
+  let data = dictStore.getDictList().filter(item => item.type !== 'encyclopedia')
+  response = {
+    code: responseCode.success,
+    data
+  }
+  return res.send(response)
+})
+
 /** 批量查询 */
-router.post('/query-patch', function (req, res, next) {
+router.post('/query-batch', function (req, res, next) {
   let response = {}
   console.log(req.body)
-  const vali = queryPatchSchema.validate(req.body, { allowUnknown: true })
+  const vali = queryBatchSchema.validate(req.body, { allowUnknown: true })
   if (vali.error) {
     response = {
       code: responseCode.error,
@@ -66,6 +77,10 @@ router.post('/query-patch', function (req, res, next) {
     }
   } else {
     const words = req.body.words.split(',')
+    // post 批量查询最大查询数
+    if (words.length > batchConfig.max) {
+      words.length = batchConfig.max
+    }
     let data = dictStore.lookupBatch(words, req.body.dictId)
 
     response = {
@@ -74,6 +89,93 @@ router.post('/query-patch', function (req, res, next) {
     }
   }
   return res.send(response)
+})
+
+/**
+ * websocket 批量查询
+ */
+router.ws('/query-batch', function (ws, req) {
+  let running = false
+  let progress = 0
+  let lastTime = Date.now() // 上一个单词结果时间
+  let uuid = '' // 任务 uuid
+  ws.on('message', function (msg) {
+    // 是否为 json
+    try {
+      msg = JSON.parse(msg)
+    } catch (e) {
+      ws.send(JSON.stringify({
+        code: responseCode.error,
+        message: 'message must be JSON'
+      }))
+      return
+    }
+
+    // 查询
+    if (msg.type === 'query') {
+      // 校验
+      const vali = queryBatchSchema.validate(msg.data, { allowUnknown: true })
+      if (vali.error) {
+        ws.send(JSON.stringify({
+          code: responseCode.error,
+          message: vali.details[0].message
+        }))
+      } else {
+        const words = msg.data.words.split(',')
+        if (words.length > batchConfig.max) {
+          words.length = batchConfig.max
+        }
+        startTask(words, msg.data.dictId)
+      }
+    } else if (msg.type === 'abort') {
+      // 取消任务
+      abortTask()
+      ws.send(JSON.stringify({
+        code: responseCode.success,
+        type: 'notify',
+        subType: 'abort'
+      }))
+    }
+  })
+
+  ws.on('close', function (code, reason) {
+    abortTask()
+  })
+
+  // 开始任务
+  function startTask(words, dictId) {
+    uuid = dictStore.startTask('lookupBatch', words, dictId, (index, word, result, res) => {
+      progress = (index + 1) / words.length
+      // 完成
+      if (progress === 1) {
+        ws.send(JSON.stringify({
+          code: responseCode.success,
+          type: 'done',
+          data: res
+        }))
+        abortTask()
+      } else if (Date.now() - lastTime > 300) {
+        // 每 300 ms 发送进度通知
+        lastTime = Date.now()
+        ws.send(JSON.stringify({
+          code: responseCode.success,
+          type: 'notify',
+          subType: 'progress',
+          data: progress
+        }))
+      }
+    })
+    running = true
+    progress = 0
+  }
+
+  // 结束任务
+  function abortTask() {
+    dictStore.abortTask(uuid)
+    running = false
+    progress = 0
+    uuid = ''
+  }
 })
 
 module.exports = router;

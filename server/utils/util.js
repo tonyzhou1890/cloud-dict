@@ -2,7 +2,7 @@ module.exports = {
   /**
   * 获取文件名后缀
   */
-  getAppendix(str) {
+  getSuffix(str) {
     let arr = str.split('.')
     if (arr.length === 0) return ''
     return arr[arr.length - 1]
@@ -20,5 +20,5 @@ module.exports = {
    */
   isLowerCase(str) {
     return /[a-z]/.test(str[0])
-  }
+  },
 }
