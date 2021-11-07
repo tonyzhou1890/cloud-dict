@@ -261,10 +261,12 @@ export default {
                 )?.name,
               },
               () => {
-                ElMessage({
-                  message: `Those words have not found: ${notFoundWords}`,
-                  type: "info",
-                });
+                if (notFoundWords) {
+                  ElMessage({
+                    message: `Those words have not found: ${notFoundWords}`,
+                    type: "info",
+                  });
+                }
                 loading.value = false;
               }
             );

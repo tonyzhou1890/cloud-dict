@@ -57,7 +57,7 @@ router.get('/fuzzySearch', function (req, res, next) {
 /** 字典列表 */
 router.get('/dict/list', function (req, res, next) {
   let response = {}
-  let data = dictStore.getDictList().filter(item => item.type !== 'encyclopedia')
+  let data = dictStore.getDictList().filter(item => !item.disabled)
   response = {
     code: responseCode.success,
     data
