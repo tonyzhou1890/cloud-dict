@@ -284,6 +284,10 @@ export default {
           font-size: 16px;
           background-color: var(--themeColor);
           color: white;
+          &::selection {
+            color: var(--themeColor);
+            background-color: white;
+          }
         }
         .arrow-icon {
           cursor: pointer;

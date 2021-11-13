@@ -25,3 +25,8 @@ export const queryBatchWS = (() => {
   if (env === 'development') return 'ws://localhost:8500/query-batch'
   if (env === 'production') return `${location.protocol === 'https:' ? 'wss:' : 'ws:'}${location.hostname}/api/query-batch`
 })()
+
+// 单词列表-- api.tony93.top 提供
+export function getWordList(chapter) {
+  return axios.get('https://api.tony93.top/bdc/?c=' + chapter)
+}

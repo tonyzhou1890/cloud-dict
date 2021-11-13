@@ -28,7 +28,7 @@ const dictConfig = [
     path: `${pathPrefix}/2.0/牛津/双解/`,
     mdx: '新牛津英汉双解大词典 第2版.mdx',
     mdd: '新牛津英汉双解大词典 第2版.mdd',
-    disabled: true, // 词典列表接口过滤掉
+    disabled: false, // 词典列表接口过滤掉
   },
   {
     name: '牛津高阶学习词典英汉双解第七版',
@@ -36,7 +36,7 @@ const dictConfig = [
     path: `${pathPrefix}/1.0/牛津/高阶学习词典/`,
     mdx: '牛津高阶学习词典英汉双解第七版.mdx',
     cache: new LRU(lruConfig),
-    disabled: true
+    disabled: false
   },
   // { // 图片解析没明白
   //   name: '牛津高阶学习词典第八版',
@@ -53,7 +53,7 @@ const dictConfig = [
     mdx: 'Collins English Dictionary 3Ed.mdx',
     mdd: 'Collins English Dictionary 3Ed.mdd',
     cache: new LRU(lruConfig),
-    disabled: true
+    disabled: false
   },
   // {
   //   name: '柯林斯英语词典第3版',
@@ -77,7 +77,7 @@ const dictConfig = [
     mdx: 'Macmillan English Dictionary and Thesaurus 2nd Ed.mdx',
     mdd: 'Macmillan English Dictionary and Thesaurus 2nd Ed.mdd',
     cache: new LRU(lruConfig),
-    disabled: true
+    disabled: false
   },
   // {
   //   name: '朗道英汉汉英词典',
@@ -91,7 +91,7 @@ const dictConfig = [
     path: `${pathPrefix}/2.0/朗文/当代英语大词典/`,
     mdx: '朗文当代英语大词典(英汉汉英)第4版.mdx',
     cache: new LRU(lruConfig),
-    disabled: true
+    disabled: false
   },
   {
     name: '大英百科',

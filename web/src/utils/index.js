@@ -72,9 +72,12 @@ export function format(data) {
   data.resource = resourceArr
 
   data.list.map(item => {
-    // 处理链接
-    item.definition = item.definition.replace(/<a.*?href="(entry:.*?)">/g, (str, entry) => {
-      return str.replace(entry, 'javascript:void(0)')
+    // 处理链接和已经是 javascript:void(0) 的 a 链接(以及包含其中的图片)
+    // item.definition = item.definition.replace(/<a.*?href="(entry:.*?)">/g, (str, entry) => {
+    //   return str.replace(entry, 'javascript:void(0)')
+    // })
+    item.definition = item.definition.replace(/(<a.*?href="entry:.*?">|<a.*?href="javascript:void\(0\);".*?<img.*?><\/a>)/g, () => {
+      return ''
     })
     // 去掉 x00 符号-- x00 会导致 xml 解析错误
     // eslint-disable-next-line

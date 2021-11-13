@@ -1,5 +1,6 @@
 module.exports = {
   chainWebpack: config => {
+    // console.log(config.module)
     config.module
       .rule('vue')
       .use('vue-loader')
@@ -10,6 +11,17 @@ module.exports = {
           isCustomElement: tag => ['dict-content'].includes(tag) || tag.startsWith('xy-')
         }
       }))
+    config.module
+      .rule('css')
+      .exclude
+      .add(/epub_templates/)
+
+    config.module
+      .rule('epub_dir')
+      .test(/epub_templates/)
+      .use()
+      .loader('raw-loader')
+      .end()
   },
   configureWebpack: {
     plugins: [

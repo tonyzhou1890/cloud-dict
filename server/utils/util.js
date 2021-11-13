@@ -21,4 +21,25 @@ module.exports = {
   isLowerCase(str) {
     return /[a-z]/.test(str[0])
   },
+
+  /**
+   * 劫持操作，防止报错
+   */
+  proxyFunc(obj, key, fakeRes) {
+    if (typeof obj[key] === 'function') {
+      const old = obj[key].bind(obj)
+      obj[key] = function (...rest) {
+        try {
+          const res = old(...rest)
+          return res
+        } catch (e) {
+          console.log('error')
+          if (typeof fakeRes === 'function') {
+            return fakeRes(...rest)
+          }
+          return fakeRes || false
+        }
+      }
+    }
+  }
 }

@@ -73,10 +73,10 @@ function style(entry, ctx, config) {
 
       // 检查缓存
       if (ctx.cache && ctx.cache.has(file)) {
-        console.log('css cache hit')
+        // console.log('css cache hit')
         result = ctx.cache.get(file)
       } else {
-        console.log('css cache miss')
+        // console.log('css cache miss')
         // 查询
         result = ctx.mdd.lookup(`\\${file}`)
         if (ctx.cache) {

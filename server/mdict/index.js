@@ -11,13 +11,19 @@ class Dict {
 
     // console.log(dictList)
     this.dict = dictList.map(item => {
-      return {
+      const d = {
         ...item,
         mdx: item.mdx ? new Mdict(`${item.path}${item.mdx}`, {
           keyCaseSensitive: false
         }) : null,
         mdd: item.mdd ? new Mdict(`${item.path}${item.mdd}`) : null
       }
+      // 代理词典查询操作，因为有时查不到词会报错
+      util.proxyFunc(d.mdx, 'lookup', (word) => ({ keyText: word, definition: null }))
+      if (d.mdd) {
+        util.proxyFunc(d.mdd, 'lookup', (word) => ({ keyText: word, definition: null }))
+      }
+      return d
     }).filter(item => {
       // if (item.mdx._version < 2) {
       //   console.log(`${item.name}文件版本为${item.mdx._version}，不符合最低版本 2 的要求`)

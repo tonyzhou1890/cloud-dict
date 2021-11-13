@@ -11,9 +11,9 @@
         Tip: the number of words must be less then {{ max }}.
       </p>
       <!-- 文件 -->
-      <div class="file-wrapper">
+      <div v-show="!preview" class="file-wrapper">
+        <!-- file -->
         <el-upload
-          v-if="!file"
           class="upload"
           drag
           action="/"
@@ -29,17 +29,36 @@
             Drop file here or <em>click to upload</em>
           </div>
         </el-upload>
-        <div v-else class="preview">
-          <p class="preview-title">preview:</p>
-          <pre class="preview-content">{{ preview }}</pre>
-        </div>
+        <p>Or choose a chapter</p>
+
+        <!-- chapter list -->
+        <el-select
+          v-model="checkedChapter"
+          placeholder="please select a chapter"
+          class="select"
+          popper-class="popper-class"
+          filterable
+          @change="handleSelectChapter"
+        >
+          <el-option
+            v-for="item in chapterList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          ></el-option>
+        </el-select>
+      </div>
+      <div v-if="preview" class="preview">
+        <p class="preview-title">preview:</p>
+        <pre class="preview-content">{{ preview }}</pre>
       </div>
       <!-- 操作 -->
-      <div v-if="file" class="actions-wrapper">
+      <div v-if="preview" class="actions-wrapper">
         <el-select
           v-model="checkedDict"
           placeholder="please select a dict"
           class="select"
+          @change="changeDict"
         >
           <el-option
             v-for="item in dictListData"
@@ -49,6 +68,11 @@
           >
           </el-option>
         </el-select>
+        <el-input
+          class="custom-name"
+          v-model="customName"
+          placeholder="file name"
+        ></el-input>
         <div class="btns-wrapper">
           <el-button v-if="!loading" type="primary" @click="handleStartPost"
             >Start</el-button
@@ -65,7 +89,12 @@
 import { ref, onBeforeUnmount } from "vue";
 import { ElMessage } from "element-plus";
 import { UploadFilled } from "@element-plus/icons";
-import { dictList, queryBatchWS, queryBatch } from "../services/api";
+import {
+  dictList,
+  queryBatchWS,
+  queryBatch,
+  getWordList,
+} from "../services/api";
 import { getFile, format } from "../utils/index";
 import makeEpub from "../utils/makeEpub";
 import { exportConfig } from "../utils/config";
@@ -76,21 +105,36 @@ export default {
     let ws = null;
     const dictListData = ref([]);
     const checkedDict = ref("");
+    const customName = ref("");
     const file = ref(null);
     const uploadEl = ref(null);
     let wordList = [];
     const preview = ref("");
     const progress = ref(0);
     const max = ref(exportConfig.max);
+    // 章节列表，每个章节 200 单词
+    const chapterList = ref(
+      new Array(200).fill(1).map((item, index) => {
+        return {
+          id: item + index,
+          name: `Chapter ${item + index}`,
+        };
+      })
+    );
+    const checkedChapter = ref("");
 
     // 获取词典列表
     dictList()
       .then((res) => {
         if (res.data.code === 0) {
           dictListData.value = res.data.data;
-          checkedDict.value = dictListData.value.length
-            ? dictListData.value[0].id
-            : "";
+          if (dictListData.value.length) {
+            checkedDict.value = dictListData.value[0].id;
+            customName.value = dictListData.value[0].name;
+          } else {
+            checkedDict.value = "";
+            customName.value = "";
+          }
         } else {
           throw new Error(res.data);
         }
@@ -101,6 +145,13 @@ export default {
           type: "error",
         });
       });
+
+    // 更换字典
+    function changeDict(id) {
+      console.log("change dict: ", id);
+      checkedDict.value = id;
+      customName.value = dictListData.value.find((item) => item.id === id).name;
+    }
 
     // 上传文件
     function handleChange(e) {
@@ -116,15 +167,19 @@ export default {
         .then((res) => {
           // 将文本处理成单词数组
           wordList = res.split(/[\r\n]/).filter((v) => v && v.length < 50);
-          if (wordList.length > exportConfig.max)
+          if (wordList.length > exportConfig.max) {
             wordList.length = exportConfig.max;
+          }
+          if (wordList.length === 0) {
+            ElMessage({
+              message: "No Content",
+              type: "info",
+            });
+            return;
+          }
           file.value = res;
           // 处理预览
-          let arr = [];
-          for (let i = 0; i < wordList.length && i < 20; i++) {
-            arr.push(wordList[i]);
-          }
-          preview.value = arr.join("\r\n");
+          preview.value = wordList.join("\r\n");
         })
         .catch((e) => {
           console.log(e);
@@ -172,6 +227,7 @@ export default {
       wordList = [];
       preview.value = "";
       progress.value = 0;
+      checkedChapter.value = "";
     }
 
     // ws open
@@ -253,23 +309,27 @@ export default {
 
             format(data);
 
-            makeEpub(
-              data,
-              {
-                title: dictListData.value.find(
-                  (item) => item.id === checkedDict.value
-                )?.name,
-              },
-              () => {
+            makeEpub(data, {
+              title:
+                customName.value ||
+                dictListData.value.find((item) => item.id === checkedDict.value)
+                  ?.name,
+            })
+              .then(() => {
                 if (notFoundWords) {
                   ElMessage({
                     message: `Those words have not found: ${notFoundWords}`,
                     type: "info",
                   });
                 }
-                loading.value = false;
-              }
-            );
+                setTimeout(() => {
+                  // 下载有点慢，延迟修改状态
+                  loading.value = false;
+                }, 2000);
+              })
+              .catch((e) => {
+                throw new Error(e);
+              });
           } else {
             throw new Error(res.data.message ?? "query failed");
           }
@@ -286,17 +346,43 @@ export default {
         });
     }
 
+    // 选择章节
+    function handleSelectChapter(id) {
+      getWordList(id)
+        .then((res) => {
+          console.log(res);
+          if (res.data.code === 0) {
+            wordList = res.data.data.map((item) => item.word);
+            // 处理预览
+            preview.value = wordList.join("\r\n");
+          } else {
+            throw new Error(res.data);
+          }
+        })
+        .catch((e) => {
+          ElMessage({
+            message: e.message ?? e.errorMsg ?? "error",
+            type: "error",
+          });
+        });
+    }
+
     return {
       loading,
       dictListData,
       checkedDict,
+      customName,
       file,
       preview,
       max,
+      chapterList,
+      checkedChapter,
       handleChange,
+      changeDict,
       handleStart,
       handleCancel,
       handleStartPost,
+      handleSelectChapter,
     };
   },
   components: {
@@ -331,14 +417,31 @@ export default {
   .explain {
     text-align: center;
   }
+  .file-wrapper {
+    text-align: center;
+    .select {
+      width: 300px;
+    }
+  }
+  .preview {
+    width: 100%;
+    text-align: center;
+    .preview-content {
+      max-height: 400px;
+      overflow: auto;
+    }
+  }
   .upload {
     padding-top: 20px;
   }
   .actions-wrapper {
-    text-align: center;
-    .select {
-      margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .select,
+    .custom-name {
       margin-bottom: 10px;
+      width: 300px;
     }
   }
 }
@@ -365,5 +468,14 @@ export default {
       font-size: 40px;
     }
   }
+}
+.popper-class {
+  width: 300px !important;
+  min-width: 300px !important;
+}
+.el-message {
+  max-width: 90%;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>
