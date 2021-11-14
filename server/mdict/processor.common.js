@@ -25,7 +25,7 @@ function image(entry, ctx, config = {}) {
       // 检查缓存
       if (ctx.cache && ctx.cache.has(imgTemp)) {
         // console.log('cache hit')
-        result = ctx.cache.get(imgTemp)
+        result = { ...ctx.cache.get(imgTemp) }
       } else {
         // 查询
         result = ctx.mdd.lookup(`\\${imgTemp}`)
@@ -74,7 +74,7 @@ function style(entry, ctx, config) {
       // 检查缓存
       if (ctx.cache && ctx.cache.has(file)) {
         // console.log('css cache hit')
-        result = ctx.cache.get(file)
+        result = { ...ctx.cache.get(file) }
       } else {
         // console.log('css cache miss')
         // 查询
@@ -128,7 +128,7 @@ function sound(entry, ctx, config) {
 
       // 检查缓存
       if (ctx.cache && ctx.cache.has(file)) {
-        result = ctx.cache.get(file)
+        result = { ...ctx.cache.get(file) }
       } else {
         // 查询
         result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)

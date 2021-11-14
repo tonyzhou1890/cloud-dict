@@ -16,11 +16,11 @@ function make(data, config = {}) {
       css = window.atob(stylesheet.data.replace('data:text/css:base64,', ''))
     }
 
-    // 因为字典 css 不规范，最后一个样式可能缺少右括号，所以把字体放最前面
+    // 因为字典 css 不规范，最后一个样式可能缺少右括号，所以把字体放最前面。路径相对于打包后的 css 文件
     css = `
       @font-face {
         font-family: 'Kingsoft Phonetic Plain';
-        src: url('fonts/Ksphonet.otf');
+        src: url('../fonts/kpp.ttf');
       }
     ` + css
 
@@ -28,9 +28,9 @@ function make(data, config = {}) {
     epub.withStylesheetUrl(URL.createObjectURL(blob))
   }
 
-  // font--only otf supported
+  // font
   {
-    epub.withAdditionalFile('/font/Ksphonet.otf', 'fonts', 'Ksphonet.otf')
+    epub.withAdditionalFile('/fonts/kpp.ttf', 'fonts', 'kpp.ttf')
   }
 
   // image

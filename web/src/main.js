@@ -9,6 +9,8 @@ import './styles/index.less'
 import './webComponents'
 // import 'xy-ui'
 
+window.version = require('../../package.json').version
+
 const app = createApp(App)
 
 // // 自定义 web components

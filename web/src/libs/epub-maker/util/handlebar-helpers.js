@@ -14,7 +14,9 @@ var mimetypes = {
   'gif': 'image/gif',
   'GIF': 'image/gif',
   'otf': 'font/otf',
-  'OTF': 'font/otf'
+  'OTF': 'font/otf',
+  'ttf': 'font/ttf',
+  'TTF': 'font/ttf'
 };
 
 Handlebars.registerHelper('extension', function (str) {

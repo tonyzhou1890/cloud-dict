@@ -126,7 +126,7 @@ class Dict {
     }
     // 查找缓存
     if (ctx.cache && ctx.cache.has(word)) {
-      data.result = ctx.cache.get(word)
+      data.result = { ...ctx.cache.get(word) }
     }
     // 最多三次查找
     // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
