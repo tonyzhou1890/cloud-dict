@@ -158,14 +158,17 @@ class Builder {
 
   addFiles(zip, epubConfig) {
     return Promise.all(epubConfig.additionalFiles.map(file => {
-      return fetch(file.url).then(res => {
-        res.arrayBuffer()
-          .then(data => {
-            zip.folder('EPUB').folder(file.folder).file(file.filename, data, { binary: true })
-            return Promise.resolve()
-          })
-          .catch(e => Promise.reject(e))
-      }).catch(e => Promise.reject(e))
+      return new Promise((resolve2, reject2) => {
+        fetch(file.url).then(res => {
+          res.arrayBuffer()
+            .then(data => {
+              console.log(file, data)
+              zip.folder('EPUB').folder(file.folder).file(file.filename, data, { binary: true })
+              resolve2()
+            })
+            .catch(e => reject2(e))
+        }).catch(e => reject2(e))
+      })
     }))
   }
 

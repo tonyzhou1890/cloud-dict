@@ -17,6 +17,14 @@ const fuzzySearchSchema = Joi.object({
 })
 
 /**
+ * 单词列表
+ */
+const wordListSchema = Joi.object({
+  page: Joi.number().min(1),
+  size: Joi.number().min(1)
+})
+
+/**
  * 批量查询
  */
 const queryBatchSchema = Joi.object({
@@ -35,6 +43,7 @@ const parseDefinationSchema = Joi.object({
 module.exports = {
   searchWordSchema,
   fuzzySearchSchema,
+  wordListSchema,
   parseDefinationSchema,
   queryBatchSchema
 }

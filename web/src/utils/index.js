@@ -88,5 +88,56 @@ export function format(data) {
     item.definition = item.definition.replace(/(<)[美英]>/g, (str, $1) => {
       return str.replace($1, '&lt;')
     })
+    // 金山音标转换 unicode
+    item.definition = phoneticFormat(item.definition)
   })
 }
+
+
+/**
+ * 金山音标替换成 unicode 字符
+ */
+export const phoneticFormat = (() => {
+  /**
+   * 金山音标英语音标转国际音标
+   * http://www.fmddlmyy.cn/text66.html
+   */
+  const phoneticMap = {
+    '5': 'ˈ',
+    '7': 'ˌ',
+    '9': 'ˌ',
+    'A': 'æ',
+    'B': 'ɑ',
+    'C': 'ɔ',
+    'E': 'ə',
+    'F': 'ʃ',
+    'I': 'ɪ',
+    'J': 'ʊ',
+    'N': 'ŋ',
+    'Q': 'ʌ',
+    'R': 'ɔ',
+    'T': 'ð',
+    'U': 'u',
+    'V': 'ʒ',
+    'W': 'θ',
+    'Z': 'ɛ',
+    '\\': 'ɜ',
+    '^': 'ɡ',
+  }
+
+  return function (str) {
+    return str.replace(/(Kingsoft Phonetic Plain, Tahoma).*?>(.*?)<\//g, (target, $1, $2) => {
+      if ($2) {
+        let res = []
+        for (let i = 0; i < $2.length; i++) {
+          res.push(phoneticMap[$2[i]] || $2[i])
+        }
+        res = res.join('')
+        return target.replace($1, '').replace($2, res)
+      } else {
+        return str
+      }
+    })
+  }
+
+})()

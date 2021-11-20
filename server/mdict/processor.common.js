@@ -20,19 +20,9 @@ function image(entry, ctx, config = {}) {
       imgTemp = imgTemp.replace('file://', '')
 
       let suffix = getSuffix(imgTemp)
-      let result = null
 
-      // 检查缓存
-      if (ctx.cache && ctx.cache.has(imgTemp)) {
-        // console.log('cache hit')
-        result = { ...ctx.cache.get(imgTemp) }
-      } else {
-        // 查询
-        result = ctx.mdd.lookup(`\\${imgTemp}`)
-        if (ctx.cache) {
-          ctx.cache.set(imgTemp, result)
-        }
-      }
+      // 查询
+      let result = ctx.mdd.lookup(`\\${imgTemp}`)
 
       if (result.definition) {
         entry.resource[imgTemp] = {
@@ -69,20 +59,8 @@ function style(entry, ctx, config) {
   const reg = /<link.*?href="(.*?)".*?>/g
   entry.definition = entry.definition.replace(reg, (str, file) => {
     if (file) {
-      let result = null
-
-      // 检查缓存
-      if (ctx.cache && ctx.cache.has(file)) {
-        // console.log('css cache hit')
-        result = { ...ctx.cache.get(file) }
-      } else {
-        // console.log('css cache miss')
-        // 查询
-        result = ctx.mdd.lookup(`\\${file}`)
-        if (ctx.cache) {
-          ctx.cache.set(file, result)
-        }
-      }
+      // 查询
+      let result = ctx.mdd.lookup(`\\${file}`)
 
       if (result.definition) {
         entry.resource[file] = {
@@ -123,19 +101,11 @@ function sound(entry, ctx, config) {
       if (config.soundRemove === true) {
         return str.replace(file, 'javascript:void(0);')
       }
-      let result = null
       let suffix = getSuffix(file)
 
-      // 检查缓存
-      if (ctx.cache && ctx.cache.has(file)) {
-        result = { ...ctx.cache.get(file) }
-      } else {
-        // 查询
-        result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)
-        if (ctx.cache) {
-          ctx.cache.set(file, result)
-        }
-      }
+      // 查询
+      let result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)
+
       if (result.definition) {
         entry.resource[file] = {
           type: 'audio',

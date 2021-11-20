@@ -13,12 +13,17 @@ class Dict {
     this.dict = dictList.map(item => {
       const d = {
         ...item,
-        mdx: item.mdx ? new Mdict(`${item.path}${item.mdx}`, {
-          keyCaseSensitive: false
-        }) : null,
+        mdx: item.mdx ? new Mdict(`${item.path}${item.mdx}`) : null,
         mdd: item.mdd ? new Mdict(`${item.path}${item.mdd}`) : null
       }
-      // 代理词典查询操作，因为有时查不到词会报错
+      // 挂载缓存
+      if (d.mdx && (item.mdxCache || item.cache)) {
+        d.mdx.cache = item.mdxCache || item.cache
+      }
+      if (d.mdd && (item.mddCache || item.cache)) {
+        d.mdd.cache = item.mddCache || item.cache
+      }
+      // 代理词典查询操作，因为有时查不到词会报错。代理函数也可以统一操作缓存
       util.proxyFunc(d.mdx, 'lookup', (word) => ({ keyText: word, definition: null }))
       if (d.mdd) {
         util.proxyFunc(d.mdd, 'lookup', (word) => ({ keyText: word, definition: null }))
@@ -124,35 +129,26 @@ class Dict {
       dictName: ctx.name,
       dictId: ctx.dictId
     }
-    // 查找缓存
-    if (ctx.cache && ctx.cache.has(word)) {
-      data.result = { ...ctx.cache.get(word) }
-    }
     // 最多三次查找
     // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
-    else {
-      data.result = ctx.mdx.lookup(word)
-      if (!data.result.definition) {
-        // 首字母小写
-        if (util.isLowerCase(word[0])) {
-          data.result = ctx.mdx.lookup(
-            `${word[0].toUpperCase()}${word.substr(1)}`
-          )
-          if (!data.result.definition) {
-            data.result = ctx.mdx.lookup(word.toUpperCase())
-          }
-        } else if (util.isUpperCase(word[0])) {
-          // 小写
-          data.result = ctx.mdx.lookup(word.toLowerCase())
+    data.result = ctx.mdx.lookup(word)
+    if (!data.result.definition) {
+      // 首字母小写
+      if (util.isLowerCase(word[0])) {
+        console.log(word)
+        data.result = ctx.mdx.lookup(
+          `${word[0].toUpperCase()}${word.substr(1)}`
+        )
+        if (!data.result.definition) {
+          data.result = ctx.mdx.lookup(word.toUpperCase())
         }
-      }
-      // 加入原词
-      data.result.word = word
-      // 存到缓存
-      if (ctx.cache) {
-        ctx.cache.set(word, { ...data.result })
+      } else if (util.isUpperCase(word[0])) {
+        // 小写
+        data.result = ctx.mdx.lookup(word.toLowerCase())
       }
     }
+    // 加入原词
+    data.result.word = word
     // 如果有释义，则对词条进行处理
     if (data.result.definition) {
       data.result = this._processData(data.result, ctx, config)

@@ -112,14 +112,16 @@ export default {
     const preview = ref("");
     const progress = ref(0);
     const max = ref(exportConfig.max);
-    // 章节列表，每个章节 200 单词
+    // 章节列表，每个章节 exportConfig.max 单词
     const chapterList = ref(
-      new Array(200).fill(1).map((item, index) => {
-        return {
-          id: item + index,
-          name: `Chapter ${item + index}`,
-        };
-      })
+      new Array(Math.ceil(40000 / exportConfig.max))
+        .fill(1)
+        .map((item, index) => {
+          return {
+            id: item + index,
+            name: `Chapter ${item + index}`,
+          };
+        })
     );
     const checkedChapter = ref("");
 
@@ -299,7 +301,6 @@ export default {
       })
         .then((res) => {
           if (res.data.code === 0) {
-            console.log(res.data.data);
             let data = res.data.data;
             const notFoundWords = data.list
               .filter((item) => !item.definition)
@@ -323,6 +324,7 @@ export default {
                   });
                 }
                 setTimeout(() => {
+                  console.log("make epub then");
                   // 下载有点慢，延迟修改状态
                   loading.value = false;
                 }, 2000);
@@ -336,23 +338,23 @@ export default {
         })
         .catch((e) => {
           console.log(e);
+          loading.value = false;
           ElMessage({
             message: e.message ?? "error",
             type: "error",
           });
-        })
-        .finally(() => {
-          loading.value = false;
         });
     }
 
     // 选择章节
-    function handleSelectChapter(id) {
-      getWordList(id)
+    function handleSelectChapter(page) {
+      getWordList({
+        page,
+        size: exportConfig.max,
+      })
         .then((res) => {
-          console.log(res);
           if (res.data.code === 0) {
-            wordList = res.data.data.map((item) => item.word);
+            wordList = res.data.data.list;
             // 处理预览
             preview.value = wordList.join("\r\n");
           } else {
@@ -361,7 +363,7 @@ export default {
         })
         .catch((e) => {
           ElMessage({
-            message: e.message ?? e.errorMsg ?? "error",
+            message: e.message ?? "error",
             type: "error",
           });
         });

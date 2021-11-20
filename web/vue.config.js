@@ -11,6 +11,12 @@ module.exports = {
           isCustomElement: tag => ['dict-content'].includes(tag) || tag.startsWith('xy-')
         }
       }))
+    config
+      .plugin('html')
+      .tap(args => {
+        args[0].title = 'cloud-dict'
+        return args
+      })
     config.module
       .rule('css')
       .exclude

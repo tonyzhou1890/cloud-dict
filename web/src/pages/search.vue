@@ -69,6 +69,7 @@ import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { ArrowDownBold } from "@element-plus/icons";
 import { searchWord, fuzzySearch } from "../services/api";
+import { phoneticFormat } from "../utils";
 
 export default {
   setup() {
@@ -104,6 +105,12 @@ export default {
             // 找到了就显示
             if (res.data.data.length) {
               wordResultList.value = res.data.data.map((item) => {
+                // 音标替换
+                if (item.result?.definition) {
+                  item.result.definition = phoneticFormat(
+                    item.result.definition
+                  );
+                }
                 return {
                   ...item,
                   expand: true,

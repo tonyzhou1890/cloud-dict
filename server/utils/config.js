@@ -4,7 +4,7 @@ const responseCode = {
 }
 
 const batchConfig = {
-  max: 10000, // 最大查询词条数
+  max: 20000, // 最大查询词条数
 }
 
 module.exports = {

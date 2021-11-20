@@ -9,9 +9,6 @@
 
 
 module.exports = {
-  collins: require('./processor.collins'),
-  concise: require('./processor.concise'),
-  cambridge: require('./processor.cambridge'),
   olad8: require('./processor.olad8'),
   common: require('./processor.common')
 }

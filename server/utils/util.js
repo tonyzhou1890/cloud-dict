@@ -23,21 +23,43 @@ module.exports = {
   },
 
   /**
-   * 劫持操作，防止报错
+   * 劫持操作
+   *   1. 防止报错
+   *   2. 添加缓存
    */
-  proxyFunc(obj, key, fakeRes) {
+  proxyFunc(obj, key, fakeRes = false) {
     if (typeof obj[key] === 'function') {
       const old = obj[key].bind(obj)
       obj[key] = function (...rest) {
-        try {
-          const res = old(...rest)
-          return res
-        } catch (e) {
-          console.log('error')
-          if (typeof fakeRes === 'function') {
-            return fakeRes(...rest)
+        let res = null
+        // 尝试缓存
+        if (obj.cache && obj.cache.has(rest[0])) {
+          res = obj.cache.get(rest[0])
+          if (typeof res === 'object' && res !== null) {
+            return { ...res }
+          } else {
+            return res
           }
-          return fakeRes || false
+        } else {
+          try {
+            res = old(...rest)
+          } catch (e) {
+            console.log('error')
+            if (typeof fakeRes === 'function') {
+              res = fakeRes(...rest)
+            } else {
+              res = fakeRes
+            }
+          }
+          // 设置缓存
+          if (obj.cache) {
+            if (typeof res === 'object' && res !== null) {
+              obj.cache.set(rest[0], { ...res })
+            } else {
+              obj.cache.set(rest[0], res)
+            }
+          }
+          return res
         }
       }
     }
