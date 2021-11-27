@@ -4,7 +4,6 @@ import mimetype from '../epub_templates/lightnovel/mimetype'
 import container from '../epub_templates/lightnovel/META-INF/container.xml'
 import opf from '../epub_templates/lightnovel/EPUB/lightnovel.opf'
 import ncx from '../epub_templates/lightnovel/EPUB/lightnovel.ncx'
-import nav from '../epub_templates/lightnovel/EPUB/nav.html'
 import css from '../epub_templates/lightnovel/EPUB/css/main.css'
 import content from '../epub_templates/lightnovel/EPUB/content.html'
 import autoToc from '../epub_templates/lightnovel/EPUB/auto-toc.html'
@@ -12,20 +11,21 @@ import sectionsNavTemplate from '../epub_templates/lightnovel/EPUB/sections-nav-
 import sectionsNCXTemplate from '../epub_templates/lightnovel/EPUB/sections-ncx-template.xml'
 import sectionsOPFManifestTemplate from '../epub_templates/lightnovel/EPUB/sections-opf-manifest-template.xml'
 import sectionsOPFSpineTemplate from '../epub_templates/lightnovel/EPUB/sections-opf-spine-template.xml'
+import sectionsOPFGuideTemplate from '../epub_templates/lightnovel/EPUB/sections-opf-guide-template.xml'
 
 const templates = {
   mimetype,
   container,
   opf,
   ncx,
-  nav,
   css,
   content,
   autoToc,
   sectionsNavTemplate,
   sectionsNCXTemplate,
   sectionsOPFManifestTemplate,
-  sectionsOPFSpineTemplate
+  sectionsOPFSpineTemplate,
+  sectionsOPFGuideTemplate
 }
 
 class Builder {
@@ -39,7 +39,6 @@ class Builder {
       this.addCover(zip, epubConfig),
       this.addFiles(zip, epubConfig),
       this.addEpub2Nav(zip, epubConfig),
-      this.addEpub3Nav(zip, epubConfig),
       this.addStylesheets(zip, epubConfig),
       this.addContent(zip, epubConfig)
     ])
@@ -94,6 +93,7 @@ class Builder {
   addManifestOpf(zip, epubConfig) {
     Handlebars.registerPartial('sectionsOPFManifestTemplate', templates.sectionsOPFManifestTemplate);
     Handlebars.registerPartial('sectionsOPFSpineTemplate', templates.sectionsOPFSpineTemplate);
+    Handlebars.registerPartial('sectionsOPFGuideTemplate', templates.sectionsOPFGuideTemplate);
     zip.folder('EPUB').file('lightnovel.opf', this.compile(templates.opf, epubConfig));
   }
 
@@ -118,12 +118,8 @@ class Builder {
 
   addEpub2Nav(zip, epubConfig) {
     Handlebars.registerPartial('sectionsNCXTemplate', templates.sectionsNCXTemplate);
-    zip.folder('EPUB').file('lightnovel.ncx', this.compile(templates.ncx, epubConfig));
-  }
-
-  addEpub3Nav(zip, epubConfig) {
     Handlebars.registerPartial('sectionsNavTemplate', templates.sectionsNavTemplate);
-    zip.folder('EPUB').file('nav.html', this.compile(templates.nav, epubConfig));
+    zip.folder('EPUB').file('lightnovel.ncx', this.compile(templates.ncx, epubConfig));
   }
 
   addStylesheets(zip, epubConfig) {
@@ -162,7 +158,7 @@ class Builder {
         fetch(file.url).then(res => {
           res.arrayBuffer()
             .then(data => {
-              console.log(file, data)
+              // console.log(file, data)
               zip.folder('EPUB').folder(file.folder).file(file.filename, data, { binary: true })
               resolve2()
             })

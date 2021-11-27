@@ -33,7 +33,7 @@ module.exports = {
       obj[key] = function (...rest) {
         let res = null
         // 尝试缓存
-        if (obj.cache && obj.cache.has(rest[0])) {
+        if (obj.cache && rest.length === 1 && obj.cache.has(rest[0])) {
           res = obj.cache.get(rest[0])
           if (typeof res === 'object' && res !== null) {
             return { ...res }
@@ -52,7 +52,7 @@ module.exports = {
             }
           }
           // 设置缓存
-          if (obj.cache) {
+          if (obj.cache && rest.length === 1) {
             if (typeof res === 'object' && res !== null) {
               obj.cache.set(rest[0], { ...res })
             } else {
@@ -62,6 +62,16 @@ module.exports = {
           return res
         }
       }
+    }
+  },
+
+  /**
+   * 打印内存占用
+   */
+  consoleMem() {
+    const used = process.memoryUsage();
+    for (let key in used) {
+      console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
     }
   }
 }

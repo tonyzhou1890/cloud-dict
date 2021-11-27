@@ -4,6 +4,7 @@ const fs = require('fs')
 const { Dict, dictConfig } = require('../mdict')
 const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema } = require('../schema')
 const { responseCode, batchConfig } = require('../utils/config')
+const { consoleMem } = require('../utils/util')
 // 词频单词表
 let wordList = fs.readFileSync(__dirname + '/../../resource/wordListSortByFre.txt', 'utf-8')
 wordList = (wordList || '').split(/[\r\n]/g).filter(v => v)
@@ -40,7 +41,7 @@ router.get('/search/:word', function (req, res, next) {
 /** 模糊查询 */
 router.get('/fuzzySearch', function (req, res, next) {
   let response = {}
-  console.log(req.params)
+  // console.log(req.params)
   const vali = fuzzySearchSchema.validate(req.query, { allowUnknown: true })
   if (vali.error) {
     response = {
@@ -124,6 +125,7 @@ router.post('/query-batch', function (req, res, next) {
       code: responseCode.success,
       data
     }
+    consoleMem()
   }
   return res.send(response)
 })

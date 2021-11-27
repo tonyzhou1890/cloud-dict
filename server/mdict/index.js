@@ -135,7 +135,7 @@ class Dict {
     if (!data.result.definition) {
       // 首字母小写
       if (util.isLowerCase(word[0])) {
-        console.log(word)
+        // console.log(word)
         data.result = ctx.mdx.lookup(
           `${word[0].toUpperCase()}${word.substr(1)}`
         )

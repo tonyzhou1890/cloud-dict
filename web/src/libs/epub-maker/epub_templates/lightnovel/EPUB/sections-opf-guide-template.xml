@@ -1,0 +1,2 @@
+<reference type="text" title="{{content.title}}" href="{{name}}.html"/>
+{{#each subSections}}{{> sectionsOPFGuideTemplate}}{{/each}}

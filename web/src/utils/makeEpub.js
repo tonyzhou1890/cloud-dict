@@ -72,7 +72,7 @@ function make(data, config = {}) {
     } else {
       if (index === 0) // 章节开始
       {
-        chapter = new EpubMaker.Section(undefined, `Chapter ${chapterIndex}`, { title: `Chapter ${chapterIndex}` }, true, true)
+        chapter = new EpubMaker.Section('auto-toc', `Chapter ${chapterIndex}`, { title: `Chapter ${chapterIndex}` }, true, true)
       }
       chapter.withSubSection(getSection(item))
       index++
