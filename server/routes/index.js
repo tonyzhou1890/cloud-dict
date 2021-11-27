@@ -6,7 +6,7 @@ const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema } 
 const { responseCode, batchConfig } = require('../utils/config')
 // 词频单词表
 let wordList = fs.readFileSync(__dirname + '/../../resource/wordListSortByFre.txt', 'utf-8')
-wordList = (wordList || '').split('\r\n').filter(v => v)
+wordList = (wordList || '').split(/[\r\n]/g).filter(v => v)
 
 // 加载字典
 const dictStore = new Dict(dictConfig)

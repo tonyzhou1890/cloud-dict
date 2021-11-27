@@ -4,6 +4,6 @@ export const exportConfig = {
     [Infinity, 200],
     [1000, 100],
     [500, 50],
-    [100, 100],
+    [100, 20],
   ]
 }
