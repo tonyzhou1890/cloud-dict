@@ -14,7 +14,7 @@ const dictConfig = [
     mdx: '简明英汉汉英词典.mdx',
     mdd: '简明英汉汉英词典.mdd',
     cache: new LRU(lruConfig),
-    disabled: false // 词典列表接口过滤掉
+    disabled: true // 词典列表接口过滤掉
   },
   {
     name: '新牛津英汉双解大词典',

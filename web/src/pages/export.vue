@@ -295,6 +295,9 @@ export default {
         return;
       }
       loading.value = true;
+
+      const start = Date.now();
+
       queryBatch({
         words: wordList.join(","),
         dictId: checkedDict.value,
@@ -323,8 +326,8 @@ export default {
                     type: "info",
                   });
                 }
+                console.log(`export time: ${Date.now() - start}ms`);
                 setTimeout(() => {
-                  console.log("make epub then");
                   // 下载有点慢，延迟修改状态
                   loading.value = false;
                 }, 2000);

@@ -13,7 +13,9 @@ class Dict {
     this.dict = dictList.map(item => {
       const d = {
         ...item,
-        mdx: item.mdx ? new Mdict(`${item.path}${item.mdx}`) : null,
+        mdx: item.mdx ? new Mdict(`${item.path}${item.mdx}`, item.disabled ? {} : {
+          mode: 'mixed'
+        }) : null,
         mdd: item.mdd ? new Mdict(`${item.path}${item.mdd}`) : null
       }
       // 挂载缓存
@@ -24,7 +26,7 @@ class Dict {
         d.mdd.cache = item.mddCache || item.cache
       }
       // 代理词典查询操作，因为有时查不到词会报错。代理函数也可以统一操作缓存
-      util.proxyFunc(d.mdx, 'lookup', (word) => ({ keyText: word, definition: null }))
+      util.proxyFunc(d.mdx, 'lookup', (word) => (item.disabled ? { keyText: word, definition: null } : []))
       if (d.mdd) {
         util.proxyFunc(d.mdd, 'lookup', (word) => ({ keyText: word, definition: null }))
       }
@@ -36,6 +38,7 @@ class Dict {
       // }
       return true
     })
+    util.consoleMem()
     // console.log(this.dict.map(item => item.mdx))
   }
 
@@ -129,24 +132,52 @@ class Dict {
       dictName: ctx.name,
       dictId: ctx.dictId
     }
-    // 最多三次查找
-    // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
-    data.result = ctx.mdx.lookup(word)
-    if (!data.result.definition) {
-      // 首字母小写
-      if (util.isLowerCase(word[0])) {
-        // console.log(word)
-        data.result = ctx.mdx.lookup(
-          `${word[0].toUpperCase()}${word.substr(1)}`
-        )
-        if (!data.result.definition) {
-          data.result = ctx.mdx.lookup(word.toUpperCase())
+
+    // 非 mixed 模式
+    if (ctx.disabled) {
+      // 最多三次查找
+      // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
+      data.result = ctx.mdx.lookup(word)
+      if (!data.result.definition) {
+        // 首字母小写
+        if (util.isLowerCase(word[0])) {
+          // console.log(word)
+          data.result = ctx.mdx.lookup(
+            `${word[0].toUpperCase()}${word.substr(1)}`
+          )
+          if (!data.result.definition) {
+            data.result = ctx.mdx.lookup(word.toUpperCase())
+          }
+        } else if (util.isUpperCase(word[0])) {
+          // 小写
+          data.result = ctx.mdx.lookup(word.toLowerCase())
         }
-      } else if (util.isUpperCase(word[0])) {
-        // 小写
-        data.result = ctx.mdx.lookup(word.toLowerCase())
+      }
+    } else {
+      const res = ctx.mdx.lookup(word)
+      // mixed 模式下，mdx 返回的是数组
+      if (!res.length) {
+        data.result = {
+          keyText: word,
+          definition: null
+        }
+      } else {
+        // 完全匹配
+        if (res[0].keyText === word) {
+          data.result = res[0]
+        } else if (util.isLowerCase(word[0])) {
+          // 首字母小写，选用第一个结果
+          data.result = res[0]
+        } else {
+          // 首字母大写，没有就是没有，不使用近似结果
+          data.result = {
+            keyText: word,
+            definition: null
+          }
+        }
       }
     }
+
     // 加入原词
     data.result.word = word
     // 如果有释义，则对词条进行处理
