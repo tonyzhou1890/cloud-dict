@@ -1,3 +1,8 @@
+// 深拷贝
+function cloneDeep(data) {
+  return JSON.parse(JSON.stringify(data))
+}
+
 module.exports = {
   /**
   * 获取文件名后缀
@@ -35,11 +40,7 @@ module.exports = {
         // 尝试缓存
         if (obj.cache && rest.length === 1 && obj.cache.has(rest[0])) {
           res = obj.cache.get(rest[0])
-          if (typeof res === 'object' && res !== null) {
-            return { ...res }
-          } else {
-            return res
-          }
+          return cloneDeep(res)
         } else {
           try {
             res = old(...rest)
@@ -53,11 +54,7 @@ module.exports = {
           }
           // 设置缓存
           if (obj.cache && rest.length === 1) {
-            if (typeof res === 'object' && res !== null) {
-              obj.cache.set(rest[0], { ...res })
-            } else {
-              obj.cache.set(rest[0], res)
-            }
+            obj.cache.set(rest[0], cloneDeep(res))
           }
           return res
         }
