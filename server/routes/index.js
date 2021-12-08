@@ -119,12 +119,22 @@ router.post('/query-batch', function (req, res, next) {
     if (words.length > batchConfig.max) {
       words.length = batchConfig.max
     }
-    let data = dictStore.lookupBatch(words, req.body.dictId)
+    // 词典可用性检查
+    let dictList = dictStore.getDictList().filter(item => !item.disabled)
+    if (dictList.find(v => v.dictId === req.body.dictId)) {
+      let data = dictStore.lookupBatch(words, req.body.dictId)
 
-    response = {
-      code: responseCode.success,
-      data
+      response = {
+        code: responseCode.success,
+        data
+      }
+    } else {
+      response = {
+        code: responseCode.success,
+        data: false
+      }
     }
+
     consoleMem()
   }
   return res.send(response)

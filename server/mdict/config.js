@@ -5,7 +5,7 @@ const LRU = require('lru-cache')
 const lruConfig = {
   max: 300
 }
-
+// 牛津双解第七版和朗文第四版目前批量查词内存消耗量较大，2000 词时牛津双解需要 700m，朗文需要 900m。其他词典只需要 300~400m
 const dictConfig = [
   {
     name: '简明英汉汉英词典',
@@ -16,7 +16,7 @@ const dictConfig = [
     // mdx 不需要缓存，因为单词数量多，一次导出单词也多，缓存无法覆盖，也无法生效
     // mdx 缓存用来存放高频图标等
     mddCache: new LRU(lruConfig),
-    disabled: true // 词典列表接口过滤掉
+    disabled: false // 词典列表接口过滤掉
   },
   {
     name: '新牛津英汉双解大词典',
@@ -37,6 +37,7 @@ const dictConfig = [
     dictId: '牛津高阶学习词典英汉双解第七版',
     path: `${pathPrefix}/1.0/牛津/高阶学习词典/`,
     mdx: '牛津高阶学习词典英汉双解第七版.mdx',
+    disabled: true // 词典列表接口过滤掉
   },
   // { // 图片解析没明白
   //   name: '牛津高阶学习词典第八版',
@@ -70,6 +71,7 @@ const dictConfig = [
     dictId: '朗文当代英语大词典(英汉汉英)第4版',
     path: `${pathPrefix}/2.0/朗文/当代英语大词典/`,
     mdx: '朗文当代英语大词典(英汉汉英)第4版.mdx',
+    disabled: true // 词典列表接口过滤掉
   },
   {
     name: '大英百科',
