@@ -121,7 +121,7 @@ router.post('/query-batch', function (req, res, next) {
     }
     // 词典可用性检查
     let dictList = dictStore.getDictList().filter(item => !item.disabled)
-    console.log(dictList)
+    // console.log(dictList)
     if (dictList.find(v => v.id === req.body.dictId)) {
       let data = dictStore.lookupBatch(words, req.body.dictId)
 

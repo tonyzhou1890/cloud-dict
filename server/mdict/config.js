@@ -37,7 +37,7 @@ const dictConfig = [
     dictId: '牛津高阶学习词典英汉双解第七版',
     path: `${pathPrefix}/1.0/牛津/高阶学习词典/`,
     mdx: '牛津高阶学习词典英汉双解第七版.mdx',
-    disabled: true // 词典列表接口过滤掉
+    // disabled: true // 词典列表接口过滤掉
   },
   // { // 图片解析没明白
   //   name: '牛津高阶学习词典第八版',
@@ -71,7 +71,7 @@ const dictConfig = [
     dictId: '朗文当代英语大词典(英汉汉英)第4版',
     path: `${pathPrefix}/2.0/朗文/当代英语大词典/`,
     mdx: '朗文当代英语大词典(英汉汉英)第4版.mdx',
-    disabled: true // 词典列表接口过滤掉
+    // disabled: true // 词典列表接口过滤掉
   },
   {
     name: '大英百科',
