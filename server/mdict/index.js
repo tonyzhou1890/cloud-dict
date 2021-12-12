@@ -1,4 +1,4 @@
-const Mdict = require('js-mdict').default
+const Mdict = require('mdict-js').default
 const { v1: uuidV1 } = require('uuid')
 const dictConfig = require('./config')
 const processor = require('./processor')
@@ -101,12 +101,16 @@ class Dict {
    * 查询--不准确
    * @param word string 单词
    */
-  lookup(word) {
+  lookup(word, dictIds) {
     return this.actionInList((item) => {
-      const data = this.lookupWithCtx(word, item, { replace: true })
-      // delete data.result.resource
-      return data
-    })
+      if (!Array.isArray(dictIds) || dictIds.includes(item.dictId)) {
+        const data = this.lookupWithCtx(word, item, { replace: true })
+        // delete data.result.resource
+        return data
+      } else {
+        return false
+      }
+    }).filter(v => v)
   }
 
   /**
@@ -236,35 +240,23 @@ class Dict {
   }
 
   /**
-   * 查询--也不准确，因为 fuzzy_search 和 lookup 内部调用的搜索方法是一样的
-   * @param word string 单词
-   */
-  // lookupExact(word) {
-  //   let result = this.fuzzySearch(word, 10, 0)
-  //   result = result.filter(item => item.result.length)
-  //   console.log(JSON.stringify(result))
-  //   result = result.map(item => {
-  //     let temp = item.result[0]
-  //     return this.parseDefination(temp.key, temp.rofset, item.dict)
-  //   })
-  //   console.log(result)
-  //   return result
-  // }
-
-  /**
    * 模糊搜索
    * @param word string 单词
    * @param fuzzySize number 最多纪录数
    * @param edGap number 编辑距离
    */
-  fuzzySearch(word, fuzzySize = 20, edGap = 5) {
+  fuzzySearch(word, fuzzySize = 20, edGap = 5, dictIds) {
     return this.actionInList((item) => {
-      return {
-        dictName: item.name,
-        dictId: item.dictId,
-        result: item.mdx.fuzzy_search(word, fuzzySize, edGap)
+      if (!Array.isArray(dictIds) || dictIds.includes(item.dictId)) {
+        return {
+          dictName: item.name,
+          dictId: item.dictId,
+          result: item.mdx.fuzzy_search(word, fuzzySize, edGap)
+        }
+      } else {
+        return false
       }
-    })
+    }).filter(v => v)
   }
 
   /**

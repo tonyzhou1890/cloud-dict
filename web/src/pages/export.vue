@@ -153,6 +153,14 @@ export default {
       console.log("change dict: ", id);
       checkedDict.value = id;
       customName.value = dictListData.value.find((item) => item.id === id).name;
+      if (!file.value) {
+        const chapterName = chapterList.value.find(
+          (v) => v.id === checkedChapter.value
+        )?.name;
+        if (chapterName) {
+          customName.value += ` ${chapterName}`;
+        }
+      }
     }
 
     // 上传文件
@@ -360,6 +368,8 @@ export default {
             wordList = res.data.data.list;
             // 处理预览
             preview.value = wordList.join("\r\n");
+            // 重设导出词典名称
+            changeDict(checkedDict.value);
           } else {
             throw new Error(res.data);
           }

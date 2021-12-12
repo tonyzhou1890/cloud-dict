@@ -2,6 +2,27 @@
   <div class="search-page" ref="wrapperEl">
     <div class="wrapper">
       <div class="search-wrapper">
+        <div class="dict-dropdown">
+          <!-- el-dropdown 添加 class 无效。因为没有生成 data-v -->
+          <el-dropdown :hide-on-click="false" placement="bottom-start">
+            <el-icon :size="26" color="#333" class="cp"><notebook /></el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="(item, index) in computedDictList"
+                  :key="index"
+                  :command="item.id"
+                >
+                  <el-checkbox
+                    :checked="item.checked"
+                    @change="(value) => handleChangeDict(value, item.id)"
+                    >{{ item.name }}</el-checkbox
+                  >
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
         <el-input
           class="search-input"
           v-model="word"
@@ -64,12 +85,14 @@
 </template>
 
 <script>
-import { ref, nextTick, onMounted } from "vue";
+import { ref, nextTick, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { ArrowDownBold } from "@element-plus/icons";
+import { ArrowDownBold, Notebook } from "@element-plus/icons";
 import { searchWord, fuzzySearch } from "../services/api";
 import { phoneticFormat } from "../utils";
+import { store } from "../store";
+import { useLocalStorage } from "@vueuse/core";
 
 export default {
   setup() {
@@ -79,6 +102,20 @@ export default {
     const wrapperEl = ref(null);
     const loading = ref(false);
     const tipList = ref([]);
+    // 词典列表
+    const dictList = ref(store.dictList);
+    const dictChecked = ref(useLocalStorage("dictChecked"));
+    const computedDictList = computed(() => {
+      return dictList.value.map((item) => {
+        return {
+          ...item,
+          checked:
+            !dictChecked.value ||
+            dictChecked.value?.split(",")?.includes(item.id),
+        };
+      });
+    });
+
     // 回车
     function handleKeypress(e) {
       if (e.key.toLowerCase() !== "enter") return;
@@ -99,7 +136,10 @@ export default {
 
       loading.value = true;
 
-      searchWord(str)
+      searchWord({
+        word: str,
+        dictIds: dictChecked.value,
+      })
         .then((res) => {
           if (res.data.code === 0) {
             // 找到了就显示
@@ -119,7 +159,10 @@ export default {
               tipList.value = [];
             } else {
               // 否则尝试建议单词
-              fuzzySearch(str)
+              fuzzySearch({
+                word: str,
+                dictIds: dictChecked.value,
+              })
                 .then(({ data }) => {
                   if (data.data.length) {
                     let arr = [];
@@ -186,6 +229,19 @@ export default {
       handleSearch();
     }
 
+    // 改变词典勾选
+    function handleChangeDict(value, dictId) {
+      const dictCheckedArr = dictChecked.value?.split(",") ?? [];
+      if (dictCheckedArr.includes(dictId) && !value) {
+        dictChecked.value = dictCheckedArr
+          .filter((v) => v !== dictId)
+          .join(",");
+      } else if (!dictCheckedArr.includes(dictId) && value) {
+        dictCheckedArr.push(dictId);
+        dictChecked.value = dictCheckedArr.join(",");
+      }
+    }
+
     // 挂载
     onMounted(() => {
       if (word.value) {
@@ -205,10 +261,16 @@ export default {
       handleSound,
       handleExpand,
       handleClickTipItem,
+      // 词典
+      dictList,
+      dictChecked,
+      computedDictList,
+      handleChangeDict,
     };
   },
   components: {
     ArrowDownBold,
+    Notebook,
   },
 };
 </script>
@@ -247,10 +309,24 @@ export default {
         border-radius: 25px;
         box-shadow: 2px 1px 1px rgb(233, 232, 232);
         transition: all 0.5;
+        padding: 0 85px 0 55px;
         &:focus {
           box-shadow: 2px 5px 5px rgb(233, 232, 232);
         }
       }
+    }
+    .dict-dropdown {
+      position: absolute;
+      left: 0;
+      height: 100%;
+      z-index: 1;
+      width: 50px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 25px;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
     }
     .search-btn {
       position: absolute;

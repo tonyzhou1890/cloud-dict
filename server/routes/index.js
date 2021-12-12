@@ -19,16 +19,26 @@ router.get('/', function (req, res, next) {
 });
 
 /** 单词查询 */
-router.get('/search/:word', function (req, res, next) {
+router.get('/search', function (req, res, next) {
   let response = {}
-  const vali = searchWordSchema.validate(req.params, { allowUnknown: true })
+  const vali = searchWordSchema.validate(req.query, { allowUnknown: true })
   if (vali.error) {
     response = {
       code: responseCode.error,
       message: vali.error.details[0].message
     }
   } else {
-    let data = dictStore.lookup(req.params.word)
+    // 处理词典 id 列表
+    let dictIds = req.query.dictIds
+    if (typeof dictIds === 'string' && dictIds) {
+      dictIds = dictIds.split(',')
+    } else {
+      dictIds = null
+    }
+
+    console.log('dictIds', dictIds)
+
+    let data = dictStore.lookup(req.query.word, dictIds)
     data = data.filter(item => item.result.definition)
     response = {
       code: responseCode.success,
@@ -49,7 +59,15 @@ router.get('/fuzzySearch', function (req, res, next) {
       message: vali.error.details[0].message
     }
   } else {
-    let data = dictStore.fuzzySearch(req.query.word)
+    // 处理词典 id 列表
+    let dictIds = req.query.dictIds
+    if (typeof dictIds === 'string' && dictIds) {
+      dictIds = dictIds.split(',')
+    } else {
+      dictIds = null
+    }
+
+    let data = dictStore.fuzzySearch(req.query.word, null, null, dictIds)
     data = data.filter(item => item.result.length)
     response = {
       code: responseCode.success,
@@ -62,7 +80,12 @@ router.get('/fuzzySearch', function (req, res, next) {
 /** 字典列表 */
 router.get('/dict/list', function (req, res, next) {
   let response = {}
-  let data = dictStore.getDictList().filter(item => !item.disabled)
+  let data = []
+  if (req.query.all) {
+    data = dictStore.getDictList()
+  } else {
+    data = dictStore.getDictList().filter(item => !item.disabled)
+  }
   response = {
     code: responseCode.success,
     data

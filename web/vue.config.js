@@ -37,6 +37,13 @@ module.exports = {
         ]
       }),
     ],
+    module: {
+      rules: [{
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto'
+      }]
+    }
   },
   // 是否为生产环境构建生成 source map？
   productionSourceMap: false,

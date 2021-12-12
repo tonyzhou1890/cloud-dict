@@ -4,7 +4,8 @@ const Joi = require('joi')
  * 搜索单词
  */
 const searchWordSchema = Joi.object({
-  word: Joi.string().required()
+  word: Joi.string().required(),
+  dictIds: Joi.string()
 })
 
 /**
@@ -13,7 +14,8 @@ const searchWordSchema = Joi.object({
 const fuzzySearchSchema = Joi.object({
   word: Joi.string().required(),
   fuzzySize: Joi.number().min(0).max(20),
-  edGap: Joi.number().min(0).max(5)
+  edGap: Joi.number().min(0).max(5),
+  dictIds: Joi.string()
 })
 
 /**

@@ -44,6 +44,7 @@
           v-model="word"
           @keypress="handleSearch"
           placeholder="Please input a word"
+          autofocus
         />
         <el-icon class="search-icon" :size="26" color="#333">
           <search />

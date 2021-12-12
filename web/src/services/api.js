@@ -1,17 +1,23 @@
 import axios from "./axios";
 
-export function searchWord(word) {
-  return axios.get(`/search/${word}`)
+export function searchWord(params) {
+  return axios.get(`/search`, {
+    params
+  })
 }
 
 // 模糊搜索
-export function fuzzySearch(word) {
-  return axios.get(`/fuzzySearch/?word=${word}`)
+export function fuzzySearch(params) {
+  return axios.get(`/fuzzySearch`, {
+    params
+  })
 }
 
 // 词典列表
-export function dictList() {
-  return axios.get(`/dict/list`)
+export function dictList(params) {
+  return axios.get(`/dict/list`, {
+    params
+  })
 }
 
 // 批量查询
