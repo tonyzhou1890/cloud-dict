@@ -27,6 +27,7 @@ class Dict {
       }
       // 代理词典查询操作，因为有时查不到词会报错。代理函数也可以统一操作缓存
       util.proxyFunc(d.mdx, 'lookup', (word) => (item.disabled ? { keyText: word, definition: null } : []))
+      util.proxyFunc(d.mdx, 'fuzzy_search', [])
       if (d.mdd) {
         util.proxyFunc(d.mdd, 'lookup', (word) => ({ keyText: word, definition: null }))
       }

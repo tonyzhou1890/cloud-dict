@@ -67,7 +67,7 @@ router.get('/fuzzySearch', function (req, res, next) {
       dictIds = null
     }
 
-    let data = dictStore.fuzzySearch(req.query.word, null, null, dictIds)
+    let data = dictStore.fuzzySearch(req.query.word, undefined, undefined, dictIds)
     data = data.filter(item => item.result.length)
     response = {
       code: responseCode.success,

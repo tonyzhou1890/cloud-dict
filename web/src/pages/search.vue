@@ -86,7 +86,7 @@
 
 <script>
 import { ref, nextTick, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { ArrowDownBold, Notebook } from "@element-plus/icons";
 import { searchWord, fuzzySearch } from "../services/api";
@@ -97,6 +97,7 @@ import { useLocalStorage } from "@vueuse/core";
 export default {
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const word = ref(route.query.word || "");
     const wordResultList = ref([]);
     const wrapperEl = ref(null);
@@ -133,6 +134,13 @@ export default {
         });
         return;
       }
+
+      router.push({
+        path: "/search",
+        query: {
+          word: str,
+        },
+      });
 
       loading.value = true;
 
@@ -199,7 +207,7 @@ export default {
         .finally(() => {
           loading.value = false;
           nextTick(() => {
-            console.log(wrapperEl);
+            // console.log(wrapperEl);
             wrapperEl.value.scrollTop = 0;
           });
         });

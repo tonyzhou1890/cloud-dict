@@ -16,13 +16,14 @@ const dictConfig = [
     // mdx 不需要缓存，因为单词数量多，一次导出单词也多，缓存无法覆盖，也无法生效
     // mdx 缓存用来存放高频图标等
     mddCache: new LRU(lruConfig),
-    disabled: false // 词典列表接口过滤掉
+    // disabled: true // 词典列表接口过滤掉
   },
   {
     name: '新牛津英汉双解大词典',
     dictId: '新牛津英汉双解大词典',
     path: `${pathPrefix}/2.0/牛津/双解/`,
     mdx: '新牛津英汉双解大词典.mdx',
+    // disabled: true
   },
   // {
   //   name: '新牛津英汉双解大词典 第2版',
@@ -54,6 +55,7 @@ const dictConfig = [
     mdx: 'Collins English Dictionary 3Ed.mdx',
     mdd: 'Collins English Dictionary 3Ed.mdd',
     mddCache: new LRU(lruConfig),
+    // disabled: true
   },
   {
     name: '麦克米兰英语词典第二版',
@@ -64,7 +66,8 @@ const dictConfig = [
     mddCache: new LRU({
       ...lruConfig,
       max: 100
-    })
+    }),
+    // disabled: true
   },
   {
     name: '朗文当代英语大词典(英汉汉英)第4版',
@@ -73,13 +76,13 @@ const dictConfig = [
     mdx: '朗文当代英语大词典(英汉汉英)第4版.mdx',
     // disabled: true // 词典列表接口过滤掉
   },
-  {
-    name: '大英百科',
-    dictId: 'Britannica Encyclopedia',
-    path: `${pathPrefix}/2.0/大英百科/`,
-    mdx: 'Britannica Encyclopedia.mdx',
-    disabled: true
-  },
+  // {
+  //   name: '大英百科',
+  //   dictId: 'Britannica Encyclopedia',
+  //   path: `${pathPrefix}/2.0/大英百科/`,
+  //   mdx: 'Britannica Encyclopedia.mdx',
+  //   disabled: true
+  // },
 ]
 
 module.exports = dictConfig
