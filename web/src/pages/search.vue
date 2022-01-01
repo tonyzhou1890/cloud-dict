@@ -27,6 +27,7 @@
           class="search-input"
           v-model="word"
           placeholder="please type a word"
+          clearable
           @keypress="handleKeypress"
         />
         <el-button
@@ -135,12 +136,14 @@ export default {
         return;
       }
 
-      router.push({
-        path: "/search",
-        query: {
-          word: str,
-        },
-      });
+      router
+        .replace({
+          path: "/search",
+          query: {
+            word: str,
+          },
+        })
+        .catch(() => {});
 
       loading.value = true;
 
@@ -312,6 +315,8 @@ export default {
     .search-input {
       flex: 1;
       height: 100%;
+      font-size: 18px;
+      line-height: 1;
       :deep(.el-input__inner) {
         height: 100%;
         border-radius: 25px;
@@ -320,6 +325,15 @@ export default {
         padding: 0 85px 0 55px;
         &:focus {
           box-shadow: 2px 5px 5px rgb(233, 232, 232);
+        }
+      }
+      :deep(.el-input__suffix) {
+        margin-right: 90px;
+        display: inline-flex;
+        align-items: center;
+        .el-input__clear {
+          font-size: 28px;
+          width: auto;
         }
       }
     }
