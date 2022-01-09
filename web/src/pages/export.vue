@@ -8,7 +8,7 @@
         will search all words and download.
       </p>
       <p class="explain">
-        Tip: the number of words must be less then {{ max }}.
+        Tip: the number of words must be less than {{ max }}.
       </p>
       <!-- 文件 -->
       <div v-show="!preview" class="file-wrapper">
@@ -414,7 +414,7 @@ export default {
 .wrapper {
   width: 100%;
   max-width: 1000px;
-  min-height: calc(100% - 20px);
+  min-height: calc(100vh - 20px);
   left: 0;
   right: 0;
   margin: 10px auto;

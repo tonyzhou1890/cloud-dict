@@ -4,7 +4,11 @@
       <div class="search-wrapper">
         <div class="dict-dropdown">
           <!-- el-dropdown 添加 class 无效。因为没有生成 data-v -->
-          <el-dropdown :hide-on-click="false" placement="bottom-start">
+          <el-dropdown
+            :hide-on-click="false"
+            trigger="click"
+            placement="bottom-start"
+          >
             <el-icon :size="26" color="#333" class="cp"><notebook /></el-icon>
             <template #dropdown>
               <el-dropdown-menu>
@@ -294,7 +298,7 @@ export default {
 .wrapper {
   width: 100%;
   max-width: 1000px;
-  min-height: calc(100% - 20px);
+  min-height: calc(100vh - 20px);
   left: 0;
   right: 0;
   margin: 10px auto;

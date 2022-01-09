@@ -30,14 +30,11 @@ export default {
   /* text-align: center; */
   color: #2c3e50;
   width: 100%;
-  height: 100%;
   background-color: #eceff1;
-  overflow: auto;
   .router-view {
     position: absolute;
     width: 100%;
-    height: 100%;
-    overflow: auto;
+    min-height: 100vh;
   }
 }
 </style>

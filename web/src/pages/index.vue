@@ -34,7 +34,7 @@
       <div class="brand">
         <h1 class="title">Cloud Dict</h1>
         <p class="content-text">You can search</p>
-        <p class="content-text">and you can make your own dictionary</p>
+        <p class="content-text">and you can export wordbook</p>
       </div>
       <!-- 搜索框 -->
       <div class="search-wrapper">
@@ -132,7 +132,7 @@ export default {
 <style lang="less" scoped>
 .wrapper {
   width: 100%;
-  height: 100%;
+  height: 100vh;
   background: var(--themeColor);
   background-image: radial-gradient(var(--secondary), var(--themeColor));
   display: flex;
