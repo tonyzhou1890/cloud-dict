@@ -10,7 +10,7 @@ const routes = [
   },
   {
     path: '/search',
-    component: () => import('./pages/search')
+    component: () => import('./pages/search/index.vue')
   },
   {
     path: '/export',

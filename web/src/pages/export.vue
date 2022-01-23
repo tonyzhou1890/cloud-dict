@@ -418,7 +418,6 @@ export default {
   left: 0;
   right: 0;
   margin: 10px auto;
-  border-radius: 3px;
   background-color: white;
   display: flex;
   flex-direction: column;
@@ -463,8 +462,9 @@ export default {
 
 @media screen and (max-width: 1000px) {
   .wrapper {
-    min-height: 100%;
+    min-height: 100vh;
     margin: 0;
+    border-radius: 0;
     padding: 30px 12px;
   }
 }
