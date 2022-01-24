@@ -59,7 +59,7 @@
           />
           <el-button
             class="search-btn"
-            @click="handleSearch"
+            @click="() => handleSearch()"
             type="primary"
             :loading="loading"
             >search</el-button
@@ -326,7 +326,7 @@ export default {
       })
         .then((res) => {
           if (res.data.code === 0) {
-            wordList.value = res.data.data.list.sort();
+            wordList.value = res.data.data.list;
           } else {
             throw new Error(res.data);
           }
@@ -580,7 +580,7 @@ export default {
 }
 
 // 当宽度小于 600 时，侧栏浮层显示
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 550px) {
   .wrapper.sidebar {
     padding-left: 12px;
     .word-list-panel-wrapper {

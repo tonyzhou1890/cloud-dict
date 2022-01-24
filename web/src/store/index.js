@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 
 export const store = reactive({
   dictList: [],
-  isMobile: window.innerWidth <= 600, // 是否移动端
+  isMobile: window.innerWidth <= 550, // 是否移动端
 })
 
 export default {
@@ -10,5 +10,5 @@ export default {
 }
 
 window.addEventListener('resize', () => {
-  store.isMobile = window.innerWidth <= 600
+  store.isMobile = window.innerWidth <= 550
 })

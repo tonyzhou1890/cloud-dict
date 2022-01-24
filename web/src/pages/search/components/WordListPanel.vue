@@ -4,7 +4,7 @@
     <el-input
       class="filter-input"
       v-model="inputValue"
-      placeholder="过滤"
+      placeholder="单词/区间：[100-200]"
       size="small"
     />
     <div class="list">
@@ -15,13 +15,13 @@
         :estimate-size="40"
         :keeps="60"
       >
-        <template #default="{ index, source }">
+        <template #default="{ source }">
           <div
             class="word-item ellipsis cp"
             :class="{ check: source.check }"
             @click="handleSearchWord(source.word)"
           >
-            <span class="order-num">{{ index + 1 }}.</span>
+            <span class="order-num">{{ source.index }}.</span>
             <span> {{ source.word }}</span>
           </div>
         </template>
@@ -33,6 +33,7 @@
 
 <script>
 import { toRefs, ref, computed } from "vue";
+import { orderRegexp } from "@/utils/config";
 
 export default {
   name: "WordListPanel",
@@ -56,12 +57,31 @@ export default {
     const inputValue = ref("");
     const finalWordList = computed(() => {
       const wordListFiltered = [];
+      // 序号区间
+      let start = null;
+      let end = null;
+      if (orderRegexp.test(inputValue.value)) {
+        const result = inputValue.value.match(orderRegexp);
+        start = result[1] ? Number(result[1]) : 0;
+        end = result[2] ? Number(result[2]) : wordList.value.length;
+      }
+
       for (let i = 0; i < wordList.value.length; i++) {
-        if (inputValue.value && !wordList.value[i].includes(inputValue.value)) {
+        // 区间
+        if (start !== null && (i + 1 < start || i >= end)) {
+          continue;
+        }
+        // 值匹配
+        if (
+          start === null &&
+          inputValue.value &&
+          !wordList.value[i].includes(inputValue.value)
+        ) {
           continue;
         }
 
         wordListFiltered.push({
+          index: i + 1,
           word: wordList.value[i],
           check: word.value === wordList.value[i],
         });
@@ -107,8 +127,8 @@ export default {
       overflow-y: auto;
       .word-item {
         width: 100%;
-        height: 40px;
-        line-height: 40px;
+        height: 30px;
+        line-height: 30px;
         box-sizing: border-box;
         padding: 0 10px;
         .order-num {

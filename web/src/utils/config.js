@@ -7,3 +7,6 @@ export const exportConfig = {
     [100, 20],
   ]
 }
+
+// 序号过滤正则
+export const orderRegexp = /^\[(\d*)-(\d*)\]$/
