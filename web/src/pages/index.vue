@@ -101,6 +101,12 @@ export default {
       {
         text: "Export",
         key: "export",
+        path: "/export",
+      },
+      {
+        text: "Search",
+        key: "search",
+        path: "/search",
       },
       // {
       //   text: "关于",
@@ -110,9 +116,8 @@ export default {
 
     // 点击菜单
     function handleDropMenu(key) {
-      if (key === "export") {
-        router.push("/export");
-      }
+      const item = menuList.value.find((v) => v.key === key);
+      router.push(item.path);
     }
 
     return {
