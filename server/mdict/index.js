@@ -281,6 +281,22 @@ class Dict {
   }
 
   /**
+   * 词典单词表
+   * @param {*} dictId 
+   */
+  keys(dictId) {
+    if (!dictId) {
+      return []
+    }
+    const targetDict = this.dict.find(v => v.dictId === dictId)
+    // 没有字典或者非 mixed 都返回空数组
+    if (!targetDict || targetDict.disabled) {
+      return []
+    }
+    return targetDict.mdx.keys()
+  }
+
+  /**
    * 处理结果的图片、样式等
    */
   _processData(entry, ctx, config = {}) {

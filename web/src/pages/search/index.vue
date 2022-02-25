@@ -10,10 +10,12 @@
       >
         <div class="sticky-container">
           <word-list-panel
-            :title="wordListTitle"
             :word-list="wordList"
             :word="word"
+            :wordbook-list="wordbook"
+            :wordbook-checked="wordbookChecked"
             @search-word="handleSearch"
+            @select-book="handleSelectBook"
           />
         </div>
       </div>
@@ -120,7 +122,12 @@ import { ElMessage } from "element-plus";
 import { ArrowDownBold, Notebook } from "@element-plus/icons";
 import PageMenu from "@/components/PageMenu";
 import WordListPanel from "./components/WordListPanel";
-import { searchWord, fuzzySearch, getWordList } from "../../services/api";
+import {
+  searchWord,
+  fuzzySearch,
+  getWordList,
+  getWordbook,
+} from "../../services/api";
 import { phoneticFormat } from "../../utils";
 import { store } from "../../store";
 import { useLocalStorage } from "@vueuse/core";
@@ -230,6 +237,8 @@ export default {
                       .map((entry) => entry.key);
                     arr = [...new Set(arr)];
                     tipList.value = arr;
+                  } else {
+                    tipList.value = [];
                   }
                 })
                 .catch((e) => {
@@ -302,27 +311,56 @@ export default {
     // 菜单
     const menuList = [{ key: "words", text: "单词表" }];
     const showWords = ref(false);
+    const wordbook = ref([]);
+    const wordbookChecked = ref(null);
     const wordList = ref([]);
     const wordListLoading = ref(false);
-    const wordListTitle = ref("高频 20000 词");
 
     // 点击菜单
     function handleMenuCommand(key) {
       if (key === "words") {
         showWords.value = !showWords.value;
         if (showWords.value && wordList.value.length === 0) {
-          getWordListFunc();
+          getWordListFunc(wordbookChecked.value);
         }
       }
     }
 
+    // 获取词书
+    function getWordbookList() {
+      getWordbook()
+        .then(({ data }) => {
+          if (data.code === 0) {
+            wordbook.value = data.data;
+            if (wordbook.value.length) {
+              wordbookChecked.value = wordbook.value[0];
+            }
+          } else {
+            throw new Error(data);
+          }
+        })
+        .catch((e) => {
+          ElMessage({
+            message: e.message ?? "error",
+            type: "error",
+          });
+        });
+    }
+
+    // 切换词书
+    function handleSelectBook(book) {
+      wordbookChecked.value = book;
+      getWordListFunc(book);
+    }
+
     // 获取单词
-    function getWordListFunc() {
+    function getWordListFunc(book = "") {
       wordListLoading.value = true;
 
       getWordList({
         page: 1,
         size: 20000,
+        book,
       })
         .then((res) => {
           if (res.data.code === 0) {
@@ -352,6 +390,7 @@ export default {
       if (word.value) {
         handleSearch();
       }
+      getWordbookList();
     });
 
     return {
@@ -374,10 +413,12 @@ export default {
       // 菜单和单词表
       handleMenuCommand,
       menuList,
+      wordbook,
+      wordbookChecked,
       showWords,
       wordList,
       wordListLoading,
-      wordListTitle,
+      handleSelectBook,
       hideSidebar,
     };
   },

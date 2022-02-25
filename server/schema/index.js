@@ -23,7 +23,8 @@ const fuzzySearchSchema = Joi.object({
  */
 const wordListSchema = Joi.object({
   page: Joi.number().min(1),
-  size: Joi.number().min(1)
+  size: Joi.number().min(1),
+  book: Joi.string()
 })
 
 /**
@@ -42,10 +43,18 @@ const parseDefinationSchema = Joi.object({
   offset: Joi.number().min(0).required()
 })
 
+/**
+ * 字典词表
+ */
+const dictKeysSchema = Joi.object({
+  dictId: Joi.string().required()
+})
+
 module.exports = {
   searchWordSchema,
   fuzzySearchSchema,
   wordListSchema,
   parseDefinationSchema,
-  queryBatchSchema
+  queryBatchSchema,
+  dictKeysSchema
 }

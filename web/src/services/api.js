@@ -38,3 +38,8 @@ export function getWordList(params) {
     params
   })
 }
+
+// 词书列表
+export function getWordbook() {
+  return axios.get('./wordbook/list')
+}

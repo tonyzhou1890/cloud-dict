@@ -1,6 +1,19 @@
 <template>
   <div class="word-list-panel full">
-    <p class="title">{{ title }}</p>
+    <el-select
+      :model-value="wordbookChecked"
+      @change="handleChangeBook"
+      size="small"
+      class="book-select"
+    >
+      <el-option
+        v-for="item in wordbookList"
+        :key="item"
+        :value="item"
+        placeholder="选择词书"
+        >{{ item }}</el-option
+      >
+    </el-select>
     <el-input
       class="filter-input"
       v-model="inputValue"
@@ -38,7 +51,11 @@ import { orderRegexp } from "@/utils/config";
 export default {
   name: "WordListPanel",
   props: {
-    title: {
+    wordbookList: {
+      type: Array,
+      default: () => [],
+    },
+    wordbookChecked: {
       type: String,
       default: "",
     },
@@ -51,7 +68,7 @@ export default {
       default: "",
     },
   },
-  emits: ["searchWord"],
+  emits: ["searchWord", "selectBook"],
   setup(props, ctx) {
     const { wordList, word } = toRefs(props);
     const inputValue = ref("");
@@ -94,10 +111,16 @@ export default {
       ctx.emit("searchWord", word);
     }
 
+    // 切换词书
+    function handleChangeBook(value) {
+      ctx.emit("selectBook", value);
+    }
+
     return {
       inputValue,
       finalWordList,
       handleSearchWord,
+      handleChangeBook,
     };
   },
 };
@@ -113,14 +136,15 @@ export default {
     margin: 0;
     padding: 10px;
   }
+  .book-select,
   .filter-input {
     width: 100%;
     box-sizing: border-box;
-    padding: 0 10px;
+    padding: 10px 10px 0;
   }
   .list {
     width: 100%;
-    height: calc(100% - 70px);
+    height: calc(100% - 84px);
     box-sizing: border-box;
     padding-top: 10px;
     .word-list {
