@@ -138,9 +138,9 @@ export default {
   }
   .book-select,
   .filter-input {
-    width: 100%;
+    width: calc(100% - 20px);
     box-sizing: border-box;
-    padding: 10px 10px 0;
+    margin: 10px 10px 0;
   }
   .list {
     width: 100%;

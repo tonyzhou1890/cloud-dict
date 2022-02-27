@@ -14,6 +14,20 @@ const wordbook = [
     path: __dirname + '/../../resource/coca60000.txt'
   },
   {
+    name: '常用词组',
+    path: __dirname + '/../../resource/phrase.txt',
+    func(str) {
+      const arr = str.split(/[\r\n]/g).filter(v => v)
+      const wordList = []
+      for (let i = 0; i < arr.length; i++) {
+        if (/^[a-zA-Z].*[a-zA-Z]$/.test(arr[i])) {
+          wordList.push(arr[i])
+        }
+      }
+      return wordList
+    }
+  },
+  {
     name: '常用词缀',
     path: __dirname + '/../../resource/affix.txt',
     func(str) {
