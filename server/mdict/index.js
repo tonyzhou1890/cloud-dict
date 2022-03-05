@@ -3,6 +3,7 @@ const { v1: uuidV1 } = require('uuid')
 const dictConfig = require('./config')
 const processor = require('./processor')
 const util = require('../utils/util')
+const { getSuffix } = require('../utils/util')
 
 class Dict {
   constructor(dictList) {
@@ -105,7 +106,10 @@ class Dict {
   lookup(word, dictIds) {
     return this.actionInList((item) => {
       if (!Array.isArray(dictIds) || dictIds.includes(item.dictId)) {
-        const data = this.lookupWithCtx(word, item, { replace: true })
+        const data = this.lookupWithCtx(word, item, {
+          replace: true,
+          soundIgnore: true
+        })
         // delete data.result.resource
         return data
       } else {
@@ -297,12 +301,36 @@ class Dict {
   }
 
   /**
+   * 获取音频
+   * @param {*} dictId 
+   * @param {*} file 
+   * @returns 
+   */
+  getSound(dictId, file) {
+    const targetDict = this.dict.find(v => v.dictId === dictId)
+    if (!targetDict || targetDict.disabled || !targetDict.mdd) {
+      return ''
+    } else {
+      const suffix = getSuffix(file)
+      // 查询
+      const result = targetDict.mdd.lookup(`\\${file.replace('sound://', '')}`)
+
+      if (result.definition) {
+        return `data:audio/${suffix};base64,${result.definition}`
+      } else {
+        return ''
+      }
+    }
+  }
+
+  /**
    * 处理结果的图片、样式等
    */
   _processData(entry, ctx, config = {}) {
     // 设置
     let defaultConfig = {
       replace: true, // 资源替换为 base64
+      imageReplace: false, // 默认不替换图片资源。因为词条解释很多时，前面的图片会多次重复
     }
     config = Object.assign({}, defaultConfig, config)
     // 资源 map

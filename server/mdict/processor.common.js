@@ -32,7 +32,7 @@ function image(entry, ctx, config = {}) {
         }
         return str.replace(img, (str2, img2) => {
           // 替换为 base64
-          if (config.replace !== false) {
+          if (config.imageReplace !== false) {
             return `"data:image/${suffix};base64,${result.definition}"`
           } else {
             // 或者仅仅规范化原字符串
@@ -42,7 +42,7 @@ function image(entry, ctx, config = {}) {
       }
     }
 
-    return ''
+    return str
   })
   return entry
 }
@@ -80,7 +80,7 @@ function style(entry, ctx, config) {
       }
     }
 
-    return ''
+    return str
   })
   return entry
 }
@@ -100,6 +100,9 @@ function sound(entry, ctx, config) {
       // 如果去除 sound，直接替换为 javascript:void(0)
       if (config.soundRemove === true) {
         return str.replace(file, 'javascript:void(0);')
+      } else if (config.soundIgnore === true) {
+        // 忽略音频
+        return str
       }
       let suffix = getSuffix(file)
 
@@ -121,7 +124,7 @@ function sound(entry, ctx, config) {
       }
     }
 
-    return ''
+    return str
   })
   return entry
 }

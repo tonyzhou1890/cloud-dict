@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const fs = require('fs')
 const { Dict, dictConfig } = require('../mdict')
-const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema, dictKeysSchema } = require('../schema')
+const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema, dictKeysSchema, getSoundSchema } = require('../schema')
 const { responseCode, batchConfig, wordbook } = require('../utils/config')
 const { consoleMem } = require('../utils/util')
 
@@ -86,6 +86,26 @@ router.get('/dict/list', function (req, res, next) {
   response = {
     code: responseCode.success,
     data
+  }
+  return res.send(response)
+})
+
+/** 获取音频 */
+router.get('/dict/sound', function (req, res, next) {
+  let response = {}
+  const vali = getSoundSchema.validate(req.query, { allowUnknown: true })
+  if (vali.error) {
+    response = {
+      code: responseCode.error,
+      message: vali.error.details[0].message
+    }
+  } else {
+    const data = dictStore.getSound(req.query.dictId, req.query.file)
+
+    response = {
+      code: responseCode.success,
+      data
+    }
   }
   return res.send(response)
 })

@@ -93,6 +93,24 @@ export function format(data) {
   })
 }
 
+/**
+ * 将 base64 处理为 img url
+ * @param {*} data
+ */
+export function base64ToImg(data) {
+  const resourceMap = data.resource ?? {}
+  const reg = /<img.*?src="(.*?)"(\s|>|\/>)/g
+  console.log(data)
+  data.definition = data.definition.replace(reg, (str, img) => {
+    if (resourceMap[img] && resourceMap[img].type === 'image') {
+      return str.replace(img, () => {
+        return `data:image/${resourceMap[img].suffix};base64,${resourceMap[img].definition}`
+      })
+    }
+  })
+  return data
+}
+
 
 /**
  * 金山音标替换成 unicode 字符

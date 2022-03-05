@@ -14,7 +14,7 @@
             :word="word"
             :wordbook-list="wordbook"
             :wordbook-checked="wordbookChecked"
-            @search-word="handleSearch"
+            @search-word="pushQuery"
             @select-book="handleSelectBook"
           />
         </div>
@@ -61,7 +61,7 @@
           />
           <el-button
             class="search-btn"
-            @click="() => handleSearch()"
+            @click="() => pushQuery(word.trim())"
             type="primary"
             :loading="loading"
             >search</el-button
@@ -91,7 +91,7 @@
               <dict-content
                 :text="item.result.definition"
                 @clickEntry="handleLink"
-                @clickSound="handleSound"
+                @clickSound="(e) => handleSound(item.dictId, e)"
               ></dict-content>
             </div>
           </section>
@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import { ref, nextTick, onMounted, computed } from "vue";
+import { ref, nextTick, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { ArrowDownBold, Notebook } from "@element-plus/icons";
@@ -127,8 +127,9 @@ import {
   fuzzySearch,
   getWordList,
   getWordbook,
+  getSound,
 } from "../../services/api";
-import { phoneticFormat } from "../../utils";
+import { phoneticFormat, base64ToImg } from "../../utils";
 import { store } from "../../store";
 import { useLocalStorage } from "@vueuse/core";
 
@@ -155,10 +156,23 @@ export default {
       });
     });
 
+    // 添加路由
+    function pushQuery(word) {
+      router
+        .push({
+          path: "/search",
+          query: {
+            word,
+          },
+        })
+        .catch(() => {});
+    }
+
     // 回车
     function handleKeypress(e) {
       if (e.key.toLowerCase() !== "enter") return;
-      handleSearch();
+      // handleSearch();
+      pushQuery(word.value.trim());
     }
 
     // 搜索
@@ -188,15 +202,6 @@ export default {
         return;
       }
 
-      router
-        .replace({
-          path: "/search",
-          query: {
-            word: str,
-          },
-        })
-        .catch(() => {});
-
       loading.value = true;
 
       searchWord({
@@ -208,12 +213,15 @@ export default {
             // 找到了就显示
             if (res.data.data.length) {
               wordResultList.value = res.data.data.map((item) => {
-                // 音标替换
                 if (item.result?.definition) {
+                  // 音标替换
                   item.result.definition = phoneticFormat(
                     item.result.definition
                   );
+                  // 图片处理
+                  item.result = base64ToImg(item.result);
                 }
+
                 return {
                   ...item,
                   expand: true,
@@ -239,6 +247,7 @@ export default {
                     tipList.value = arr;
                   } else {
                     tipList.value = [];
+                    wordResultList.value = [];
                   }
                 })
                 .catch((e) => {
@@ -271,16 +280,45 @@ export default {
         });
     }
 
+    // url 单词改变的时候触发查询
+    watch(
+      () => route.query.word,
+      (newVal) => {
+        console.log(newVal);
+        if (newVal) {
+          handleSearch(newVal);
+        }
+      }
+    );
+
     // 处理链接
     function handleLink(e) {
-      word.value = e.detail.entry;
-      handleSearch();
+      // word.value = e.detail.entry;
+      pushQuery(e.detail.entry);
+      // handleSearch();
     }
 
     // 处理音频
-    function handleSound(e) {
-      const audio = new Audio(e.detail.sound);
-      audio.autoplay = true;
+    // function handleSound(e) {
+    //   const audio = new Audio(e.detail.sound);
+    //   audio.autoplay = true;
+    // }
+    function handleSound(dictId, e) {
+      getSound({
+        dictId,
+        file: e.detail.sound,
+      })
+        .then(({ data }) => {
+          if (data?.data) {
+            const audio = new Audio(data.data);
+            audio.autoplay = true;
+          } else {
+            throw new Error("没有音频");
+          }
+        })
+        .catch((e) => {
+          ElMessage.error(e);
+        });
     }
 
     // 处理显隐
@@ -291,8 +329,9 @@ export default {
 
     // 点击建议词
     function handleClickTipItem(str) {
-      word.value = str;
-      handleSearch();
+      // word.value = str;
+      // handleSearch();
+      pushQuery(str);
     }
 
     // 改变词典勾选
@@ -400,6 +439,7 @@ export default {
       loading,
       tipList,
       handleKeypress,
+      pushQuery,
       handleSearch,
       handleLink,
       handleSound,

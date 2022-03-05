@@ -50,11 +50,20 @@ const dictKeysSchema = Joi.object({
   dictId: Joi.string().required()
 })
 
+/**
+ * 获取音频
+ */
+const getSoundSchema = Joi.object({
+  dictId: Joi.string().required(),
+  file: Joi.string().required()
+})
+
 module.exports = {
   searchWordSchema,
   fuzzySearchSchema,
   wordListSchema,
   parseDefinationSchema,
   queryBatchSchema,
-  dictKeysSchema
+  dictKeysSchema,
+  getSoundSchema
 }

@@ -41,5 +41,12 @@ export function getWordList(params) {
 
 // 词书列表
 export function getWordbook() {
-  return axios.get('./wordbook/list')
+  return axios.get('/wordbook/list')
+}
+
+// 获取音频
+export function getSound(params) {
+  return axios.get('/dict/sound', {
+    params
+  })
 }
