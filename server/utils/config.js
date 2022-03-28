@@ -11,7 +11,7 @@ const batchConfig = {
 const wordbook = [
   {
     name: 'coca20000',
-    path: __dirname + '/../../resource/coca60000.txt'
+    path: __dirname + '/../../resource/coca60000-concise.txt'
   },
   {
     name: '常用词组',
