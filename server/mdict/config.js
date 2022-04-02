@@ -77,7 +77,7 @@ const dictConfig = [
     // disabled: true // 词典列表接口过滤掉
   },
   {
-    name: 'Longman Dictionary of Contemporary English',
+    name: 'Longman Dictionary of Contemporary English(5th)',
     dictId: 'Longman Dictionary of Contemporary English',
     path: `${pathPrefix}/2.0/朗文/Longman Dictionary of Contemporary English 5th by Amazon 20151224/`,
     mdx: 'Longman Dictionary of Contemporary English.mdx',

@@ -61,7 +61,7 @@
           />
           <el-button
             class="search-btn"
-            @click="() => pushQuery(word.trim())"
+            @click="handleSearchBtnClick"
             type="primary"
             :loading="loading"
             >search</el-button
@@ -75,7 +75,9 @@
             :key="index"
           >
             <div class="sect-header">
-              <h1 class="dict-name">{{ item.dictName }}</h1>
+              <h1 class="dict-name cp" @click="showDictInfo(item)">
+                {{ item.dictName }}
+              </h1>
               <el-icon
                 class="arrow-icon"
                 :class="item.expand === false ? 'shrink' : ''"
@@ -118,7 +120,8 @@
 <script>
 import { ref, nextTick, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
+import "element-plus/es/components/message-box/style/index";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { ArrowDownBold, Notebook } from "@element-plus/icons";
 import PageMenu from "@/components/PageMenu";
 import WordListPanel from "./components/WordListPanel";
@@ -171,8 +174,20 @@ export default {
     // 回车
     function handleKeypress(e) {
       if (e.key.toLowerCase() !== "enter") return;
-      // handleSearch();
-      pushQuery(word.value.trim());
+      if (word.value.trim() === route.query.word) {
+        handleSearch();
+      } else {
+        pushQuery(word.value.trim());
+      }
+    }
+
+    // 点击搜索按钮
+    function handleSearchBtnClick() {
+      if (word.value.trim() === route.query.word) {
+        handleSearch();
+      } else {
+        pushQuery(word.value.trim());
+      }
     }
 
     // 搜索
@@ -347,6 +362,20 @@ export default {
       }
     }
 
+    // 显示词典信息
+    function showDictInfo(item) {
+      const dict = dictList.value.find((v) => v.id === item.dictId);
+      if (dict) {
+        ElMessageBox.alert(
+          `名称：${item.dictName}<br>词条数：${dict.info?.keyHeader?.entriesNum}`,
+          "词典信息",
+          {
+            dangerouslyUseHTMLString: true,
+          }
+        ).catch(() => {});
+      }
+    }
+
     // 菜单
     const menuList = [{ key: "words", text: "单词表" }];
     const showWords = ref(false);
@@ -398,7 +427,7 @@ export default {
 
       getWordList({
         page: 1,
-        size: 20000,
+        size: 40000,
         book,
       })
         .then((res) => {
@@ -439,6 +468,7 @@ export default {
       loading,
       tipList,
       handleKeypress,
+      handleSearchBtnClick,
       pushQuery,
       handleSearch,
       handleLink,
@@ -450,6 +480,7 @@ export default {
       dictChecked,
       computedDictList,
       handleChangeDict,
+      showDictInfo,
       // 菜单和单词表
       handleMenuCommand,
       menuList,

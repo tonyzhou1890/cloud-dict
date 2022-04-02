@@ -141,9 +141,9 @@ router.get('/word/list', function (req, res, next) {
     // 指定词书
     const bookName = req.query.book
     let book = wordbook.find(v => v.name === bookName)
-    // 没找到就默认coca20000
+    // 没找到就默认coca60000
     if (!book) {
-      book = wordbook.find(v => v.name === 'coca20000')
+      book = wordbook.find(v => v.name === 'coca60000')
     }
     let wordList = ''
     try {

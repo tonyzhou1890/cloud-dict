@@ -100,7 +100,7 @@ export function format(data) {
 export function base64ToImg(data) {
   const resourceMap = data.resource ?? {}
   const reg = /<img.*?src="(.*?)"(\s|>|\/>)/g
-  console.log(data)
+  // console.log(data)
   data.definition = data.definition.replace(reg, (str, img) => {
     if (resourceMap[img] && resourceMap[img].type === 'image') {
       return str.replace(img, () => {

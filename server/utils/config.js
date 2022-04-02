@@ -4,13 +4,13 @@ const responseCode = {
 }
 
 const batchConfig = {
-  max: 20000, // 最大查询词条数
+  max: 40000, // 最大查询词条数
 }
 
 // 词书
 const wordbook = [
   {
-    name: 'coca20000',
+    name: 'coca60000',
     path: __dirname + '/../../resource/coca60000-concise.txt'
   },
   {

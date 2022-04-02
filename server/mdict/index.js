@@ -64,6 +64,11 @@ class Dict {
         name: item.name,
         id: item.dictId,
         disabled: item.disabled,
+        info: {
+          header: item.mdx.header,
+          keyHeader: item.mdx.keyHeader,
+          recordHeader: item.mdx.recordHeader
+        }
       }
     })
   }
