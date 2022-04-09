@@ -520,6 +520,7 @@ export default {
   box-sizing: border-box;
   padding: 50px 30px;
   line-height: 1.5;
+  word-break: break-word;
   .content {
     width: 100%;
     flex: 1;
