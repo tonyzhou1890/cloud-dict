@@ -34,13 +34,17 @@ export default class DictContent extends HTMLElement {
             // 词条
             if (el.attributes.href?.value?.startsWith('entry://')) {
               let entry = el.attributes.href.value.replace('entry://', '')
-              el.setAttribute('href', 'javascript: void(0)')
-              el.onclick = () => {
+              // el.setAttribute('href', 'javascript: void(0)')
+              // 修改为可以通过链接打开--主要是为了中键新窗口打开
+              el.setAttribute('href', `/search?word=${entry}`)
+              // 左键点击事件，触发 clickEntry 事件。屏蔽默认行为。因为页面切换加了动画。左键通过默认行为查询单词效率太低
+              el.onclick = (e) => {
                 this.dispatchEvent(new CustomEvent(events.clickEntry, {
                   detail: {
                     entry
                   }
                 }))
+                e?.preventDefault()
                 console.log(entry)
               }
             }
