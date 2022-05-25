@@ -1,7 +1,7 @@
 # cloud-dict
 &emsp;&emsp;云词典
 
-&emsp;&emsp;[demo](https://clouddict.net)
+&emsp;&emsp;[网址](https://clouddict.net)
 
 ## 介绍
 &emsp;&emsp;一个可以在线查词、导出 epub 的词典工具。包含了服务端和浏览器端。可以下载下来自己部署。server 文件夹是服务端，web 文件夹是浏览器端。
