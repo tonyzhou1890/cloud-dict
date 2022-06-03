@@ -329,6 +329,48 @@ class Dict {
   }
 
   /**
+   * 判断单词是否存在
+   * @param {string} [dictId] 
+   * @param {string} words 
+   * @returns 
+   * ```
+   * {
+   *   isExist: [],
+   *   notExist: []
+   * }
+   * ```
+   */
+  isExist(dictId, words) {
+    let dicts = []
+    if (dictId) {
+      dicts = [this.dict.find(v => v.dictId === dictId)].filter(v => v && !v.disabled)
+    } else {
+      dicts = this.dict.filter(v => !v.disabled)
+    }
+    words = words.split(',').filter(v => v)
+    const isExist = []
+    const notExist = []
+    for (let i = 0, len = words.length; i < len; i++) {
+      let bool = false
+      for (let j = 0, dLen = dicts.length; j < dLen; j++) {
+        if (dicts[j].mdx.isExist(words[i])) {
+          bool = true
+          break
+        }
+      }
+      if (bool) {
+        isExist.push(words[i])
+      } else {
+        notExist.push(words[i])
+      }
+    }
+    return {
+      isExist,
+      notExist
+    }
+  }
+
+  /**
    * 处理结果的图片、样式等
    */
   _processData(entry, ctx, config = {}) {

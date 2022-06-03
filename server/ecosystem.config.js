@@ -3,7 +3,7 @@ module.exports = {
     name: 'cloud-dict-server',
     script: './bin/www',
     watch: '.',
-    ignore_watch: ['node_modules', 'build', 'logs'],
+    ignore_watch: ['node_modules', 'build', 'logs', 'test'],
     out_file: './logs/out.log', // 日志输出
     error_file: './logs/error.log', // 错误日志
     max_memory_restart: '2G', // 超过多大内存自动重启，仅防止内存泄露，根据自己的业务设置

@@ -58,6 +58,14 @@ const getSoundSchema = Joi.object({
   file: Joi.string().required()
 })
 
+/**
+ * 判断单词是否存在
+ */
+const isExistSchema = Joi.object({
+  dictId: Joi.string().allow('', null),
+  words: Joi.string().required()
+})
+
 module.exports = {
   searchWordSchema,
   fuzzySearchSchema,
@@ -65,5 +73,6 @@ module.exports = {
   parseDefinationSchema,
   queryBatchSchema,
   dictKeysSchema,
-  getSoundSchema
+  getSoundSchema,
+  isExistSchema
 }

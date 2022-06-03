@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const fs = require('fs')
 const { Dict, dictConfig } = require('../mdict')
-const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema, dictKeysSchema, getSoundSchema } = require('../schema')
+const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema, dictKeysSchema, getSoundSchema, isExistSchema } = require('../schema')
 const { responseCode, batchConfig, wordbook } = require('../utils/config')
 const { consoleMem } = require('../utils/util')
 
@@ -242,6 +242,24 @@ router.get('/dict/keys', function (req, res, next) {
     }
 
     consoleMem()
+  }
+  return res.send(response)
+})
+
+/** 单词存在判断 */
+router.post('/word/isExist', function (req, res, next) {
+  let response = {}
+  const vali = isExistSchema.validate(req.body, { allowUnknown: true })
+  if (vali.error) {
+    response = {
+      code: responseCode.error,
+      message: vali.error.details[0].message
+    }
+  } else {
+    response = {
+      code: responseCode.success,
+      data: dictStore.isExist(req.body.dictId, req.body.words)
+    }
   }
   return res.send(response)
 })
