@@ -19,6 +19,7 @@
       v-model="inputValue"
       placeholder="单词/区间：[100-200]"
       size="small"
+      clearable
     />
     <div class="list">
       <virtual-List
@@ -92,7 +93,7 @@ export default {
         if (
           start === null &&
           inputValue.value &&
-          !wordList.value[i].includes(inputValue.value)
+          !wordList.value[i].startsWith(inputValue.value)
         ) {
           continue;
         }
