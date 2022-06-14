@@ -1,0 +1,2 @@
+<itemref idref="{{name}}" />
+<itemref idref="{{name}}_content" />

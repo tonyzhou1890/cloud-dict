@@ -1,9 +1,13 @@
 import { saveAs } from 'file-saver'
 import lightnovel from './template-builders/lightnovel-builder'
+import lightnovel3 from './template-builders/lightnovel3-builder'
+import dict from './template-builders/dict'
 import './util/handlebar-helpers'
 
 const templateManagers = {
-  lightnovel
+  lightnovel,
+  lightnovel3,
+  dict
 }
 
 class EpubMaker {
@@ -16,7 +20,7 @@ class EpubMaker {
       additionalFiles: [],
       options: {},
       uuid: Date.now(),
-      templateName: 'lightnovel'
+      templateName: 'lightnovel3'
     }
   }
 

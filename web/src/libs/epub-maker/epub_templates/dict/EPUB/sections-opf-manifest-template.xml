@@ -1,0 +1,4 @@
+{{#if needPage}}
+<item id="{{name}}" href="{{name}}.html" media-type="application/xhtml+xml" />
+<item id="{{name}}_content" href="{{name}}_content.html" media-type="application/xhtml+xml" />
+{{/if}}

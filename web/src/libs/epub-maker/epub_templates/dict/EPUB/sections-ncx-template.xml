@@ -1,0 +1,21 @@
+
+<navPoint id="{{name}}">
+    <navLabel>
+        <text>{{content.title}}</text>
+    </navLabel>
+    {{#if needPage}}
+    <content src="{{name}}.html"/>
+    {{/if}}
+    {{#if subSections}}
+        {{#each subSections}}
+            <navPoint id="{{name}}">
+                <navLabel>
+                    <text>{{content.title}}</text>
+                </navLabel>
+                {{#if needPage}}
+                <content src="{{../name}}_content.html#{{name}}"/>
+                {{/if}}
+            </navLabel>
+        {{/each}}
+    {{/if}}
+</navPoint>

@@ -63,6 +63,11 @@ function make(data, config = {}) {
     }
   })
 
+  // 需要划分章节，使用 dict 模板
+  if (rule[0] !== rule[1]) {
+    epub.withTemplate('dict')
+  }
+
   data.list.map((item, total) => {
     // 如果每章单词数和总单词数相同，不需要划分二级章节
     if (rule[0] === rule[1]) {
@@ -86,9 +91,12 @@ function make(data, config = {}) {
   })
 
   function getSection(item, config = {}) {
-    const content = item.definition.replace(/<img.*?src="(.*?)".*?>/g, (str, img) => {
+    // 替换图片
+    let content = item.definition.replace(/<img.*?src="(.*?)".*?>/g, (str, img) => {
       return str.replace(img, `images/${img}`)
     })
+    // 去除 css 文件
+    content = content.replace(/<link.*?href="(.*?)".*?>/, '')
     return new EpubMaker.Section(undefined, config.id || item.word, { title: item.word, content }, true, false)
   }
 

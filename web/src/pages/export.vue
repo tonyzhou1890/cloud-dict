@@ -340,9 +340,6 @@ export default {
                   loading.value = false;
                 }, 2000);
               })
-              .catch((e) => {
-                throw new Error(e);
-              });
           } else {
             throw new Error(res.data.message ?? "query failed");
           }
