@@ -1,35 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
-<html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 
 <head>
-    <meta charset="utf-8">
-    <title>{{options.tocName}}</title>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
+  <title>{{options.tocName}}</title>
+  <link rel="stylesheet" type="text/css" href="css/main.css" />
 </head>
 
 <body>
-    {{#if coverUrl}}
-    <div class="cover divimage">
-        <img src="images/{{options.coverFilename}}" alt="Cover" />
-    </div>
-    {{/if}}
-    <div class="center">
-        <h1>{{title}}</h1>
-        <div>{{author}}</div>
-        <div>{{publisher}}</div>
-        <div>{{modificationDateYMD}}</div>
-    </div>
+  {{#if coverUrl}}
+  <div class="cover divimage">
+    <img src="images/{{options.coverFilename}}" alt="Cover" />
+  </div>
+  {{/if}}
+  <div class="center">
+    <h1>{{title}}</h1>
+    <div>{{author}}</div>
+    <div>{{publisher}}</div>
+    <div>{{modificationDateYMD}}</div>
+  </div>
 
-    <nav class="hidden" epub:type="toc" id="toc">
-        <ol>
-            {{#each sections}}{{> sectionsNavTemplate}}{{/each}}
-        </ol>
-    </nav>
-    <nav class="hidden" epub:type="landmarks">
-        <ol>
-            <li><a epub:type="toc" href="#toc">{{options.tocName}}</a></li>
-        </ol>
-    </nav>
+  <nav class="hidden" epub:type="toc" id="toc">
+    <ol>
+      {{#each sections}}{{> sectionsNavTemplate}}{{/each}}
+    </ol>
+  </nav>
+  <nav class="hidden" epub:type="landmarks">
+    <ol>
+      <li><a epub:type="toc" href="#toc">{{options.tocName}}</a></li>
+    </ol>
+  </nav>
 </body>
 
 </html>

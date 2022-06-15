@@ -1,18 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>{{content.fullTitle}}</title>
-        <link rel="stylesheet" type="text/css" href="css/main.css"> 
-    </head>
-    <body>
-        {{#if subSections}}
-            {{#each subSections}}
-            <section id="{{name}}">     
-                {{#if content.renderTitle}}<h2>{{content.title}}</h2>{{/if}} 
-                {{#if content.content}}{{{content.content}}}{{/if}}
-            </section>
-            {{/each}}
-        {{/if}}
-    </body>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+
+<head>
+  <meta charset="utf-8" />
+  <title>{{ content.fullTitle }}</title>
+  <link rel="stylesheet" type="text/css" href="css/main.css" />
+</head>
+
+<body>
+  {{#if subSections}}
+  {{#each subSections}}
+  <section id="{{name}}">
+    {{#if content.renderTitle}}<h2>{{content.title}}</h2>{{/if}}
+    {{#if content.content }}{{{content.content}}}{{/if}}
+  </section>
+  {{/each}}
+  {{/if}}
+</body>
+
 </html>
