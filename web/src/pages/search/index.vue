@@ -318,6 +318,9 @@ export default {
     //   const audio = new Audio(e.detail.sound);
     //   audio.autoplay = true;
     // }
+    // 音频变量
+    const audio = new Audio()
+    audio.autoplay = true
     function handleSound(dictId, e) {
       getSound({
         dictId,
@@ -325,8 +328,7 @@ export default {
       })
         .then(({ data }) => {
           if (data?.data) {
-            const audio = new Audio(data.data);
-            audio.autoplay = true;
+            audio.src = data.data
           } else {
             throw new Error("没有音频");
           }
