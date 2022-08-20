@@ -1,9 +1,9 @@
 const Mdict = require('mdict-js').default
 const { v1: uuidV1 } = require('uuid')
-const dictConfig = require('./config')
 const processor = require('./processor')
 const util = require('../utils/util')
 const { getSuffix } = require('../utils/util')
+const LRU = require('lru-cache')
 
 class Dict {
   constructor(dictList) {
@@ -14,24 +14,25 @@ class Dict {
     this.dict = dictList.map(item => {
       const d = {
         ...item,
-        mdx: item.mdx ? new Mdict(`${item.path}${item.mdx}`, item.disabled ? {} : {
-          mode: 'mixed'
-        }) : null,
-        mdd: item.mdd ? new Mdict(`${item.path}${item.mdd}`) : null
+        mdx: item.mdx ? new Mdict(`${item.mdx}`, item.mdxConfig) : null,
+        mdd: item.mdd ? new Mdict(`${item.mdd}`, item.mddConfig) : null
       }
       // 挂载缓存
-      if (d.mdx && (item.mdxCache || item.cache)) {
-        d.mdx.cache = item.mdxCache || item.cache
-      }
-      if (d.mdd && (item.mddCache || item.cache)) {
-        d.mdd.cache = item.mddCache || item.cache
+      d.mdx.cache = new LRU({
+        max: 300
+      })
+      if (d.mdd) {
+        d.mdd.cache = new LRU({
+          max: 300
+        })
       }
       // 代理词典查询操作，因为有时查不到词会报错。代理函数也可以统一操作缓存
-      util.proxyFunc(d.mdx, 'lookup', (word) => (item.disabled ? { keyText: word, definition: null } : []))
+      util.proxyFunc(d.mdx, 'lookup', (word) => ({ keyText: word, definition: null }))
       util.proxyFunc(d.mdx, 'fuzzy_search', [])
       if (d.mdd) {
         util.proxyFunc(d.mdd, 'lookup', (word) => ({ keyText: word, definition: null }))
       }
+
       return d
     }).filter(item => {
       // if (item.mdx._version < 2) {
@@ -147,48 +148,22 @@ class Dict {
       dictId: ctx.dictId
     }
 
-    // 非 mixed 模式
-    if (ctx.disabled) {
-      // 最多三次查找
-      // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
-      data.result = ctx.mdx.lookup(word)
-      if (!data.result.definition) {
-        // 首字母小写
-        if (util.isLowerCase(word[0])) {
-          // console.log(word)
-          data.result = ctx.mdx.lookup(
-            `${word[0].toUpperCase()}${word.substr(1)}`
-          )
-          if (!data.result.definition) {
-            data.result = ctx.mdx.lookup(word.toUpperCase())
-          }
-        } else if (util.isUpperCase(word[0])) {
-          // 小写
-          data.result = ctx.mdx.lookup(word.toLowerCase())
+    // 最多三次查找
+    // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
+    data.result = ctx.mdx.lookup(word)
+    if (!data.result.definition) {
+      // 首字母小写
+      if (util.isLowerCase(word[0])) {
+        // console.log(word)
+        data.result = ctx.mdx.lookup(
+          `${word[0].toUpperCase()}${word.substr(1)}`
+        )
+        if (!data.result.definition) {
+          data.result = ctx.mdx.lookup(word.toUpperCase())
         }
-      }
-    } else {
-      const res = ctx.mdx.lookup(word)
-      // mixed 模式下，mdx 返回的是数组
-      if (!res.length) {
-        data.result = {
-          keyText: word,
-          definition: null
-        }
-      } else {
-        // 完全匹配
-        if (res[0].keyText === word) {
-          data.result = res[0]
-        } else if (util.isLowerCase(word[0])) {
-          // 首字母小写，选用第一个结果
-          data.result = res[0]
-        } else {
-          // 首字母大写，没有就是没有，不使用近似结果
-          data.result = {
-            keyText: word,
-            definition: null
-          }
-        }
+      } else if (util.isUpperCase(word[0])) {
+        // 小写
+        data.result = ctx.mdx.lookup(word.toLowerCase())
       }
     }
 
@@ -196,6 +171,7 @@ class Dict {
     data.result.word = word
     // 如果有释义，则对词条进行处理
     if (data.result.definition) {
+      // data.result.rawDefinition = data.result.definition
       data.result = this._processData(data.result, ctx, config)
     }
     return data
@@ -270,26 +246,6 @@ class Dict {
   }
 
   /**
-   * 定位搜索单词
-   */
-  parseDefination(word, offset, dict) {
-    const targetDict = this.dict.find(item => item.name === dict)
-    if (!targetDict) return null
-
-    const data = {
-      dict,
-    }
-
-    data.result = targetDict.mdx.parse_defination(word, offset)
-    // 如果有释义，则对词条进行处理
-    if (data.result.definition) {
-      data.result = this._processData(data.result, targetDict)
-    }
-
-    return data
-  }
-
-  /**
    * 词典单词表
    * @param {*} dictId 
    */
@@ -298,7 +254,7 @@ class Dict {
       return []
     }
     const targetDict = this.dict.find(v => v.dictId === dictId)
-    // 没有字典或者非 mixed 都返回空数组
+    // 没有字典或者禁用都返回空数组
     if (!targetDict || targetDict.disabled) {
       return []
     }
@@ -318,7 +274,7 @@ class Dict {
     } else {
       const suffix = getSuffix(file)
       // 查询
-      const result = targetDict.mdd.lookup(`\\${file.replace('sound://', '')}`)
+      const result = targetDict.mdd.lookup(`\\${file.replace('sound://', '').replace(/\//g, '\\')}`)
 
       if (result.definition) {
         return `data:audio/${suffix};base64,${result.definition}`
@@ -395,6 +351,5 @@ class Dict {
 }
 
 module.exports = {
-  dictConfig,
   Dict
 }

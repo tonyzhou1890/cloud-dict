@@ -1,12 +1,14 @@
 var express = require('express');
 var router = express.Router();
 const fs = require('fs')
-const { Dict, dictConfig } = require('../mdict')
+const { Dict } = require('../mdict')
 const { searchWordSchema, fuzzySearchSchema, wordListSchema, queryBatchSchema, dictKeysSchema, getSoundSchema, isExistSchema } = require('../schema')
 const { responseCode, batchConfig, wordbook } = require('../utils/config')
-const { consoleMem } = require('../utils/util')
+const { getDictFile, consoleMem } = require('../utils/util')
 
 // 加载字典
+const dictConfig = getDictFile(__dirname + `/../../resource/dict`)
+console.log(dictConfig)
 const dictStore = new Dict(dictConfig)
 // console.log(dictStore)
 

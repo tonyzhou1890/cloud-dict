@@ -54,13 +54,17 @@ function image(entry, ctx, config = {}) {
  * @param {object} config
  */
 function style(entry, ctx, config) {
-  if (!ctx.mdd) return entry
+  if (!ctx.mdd && ctx.css.length === 0) return entry
 
   const reg = /<link.*?href="(.*?)".*?>/g
   entry.definition = entry.definition.replace(reg, (str, file) => {
     if (file) {
+      // 先查询外部 css
+      let result = ctx.css?.find(v => v.key === file)
       // 查询
-      let result = ctx.mdd.lookup(`\\${file}`)
+      if (!result) {
+        result = ctx.mdd.lookup(`\\${file}`)
+      }
 
       if (result.definition) {
         entry.resource[file] = {
@@ -107,7 +111,7 @@ function sound(entry, ctx, config) {
       let suffix = getSuffix(file)
 
       // 查询
-      let result = ctx.mdd.lookup(`\\${file.replace('sound://', '')}`)
+      let result = ctx.mdd.lookup(`\\${file.replace('sound://', '').replace(/\//g, '\\')}`)
 
       if (result.definition) {
         entry.resource[file] = {

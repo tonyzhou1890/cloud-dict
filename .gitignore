@@ -12,3 +12,5 @@ server/logs/
 *.ntvs*
 *.njsproj
 *.sln
+
+resource/dict/*

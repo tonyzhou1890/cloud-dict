@@ -11,11 +11,11 @@ const batchConfig = {
 const wordbook = [
   {
     name: 'coca60000',
-    path: __dirname + '/../../resource/coca60000-concise.txt'
+    path: __dirname + '/../../resource/wordbook/coca60000-concise.txt'
   },
   {
     name: '常用词组',
-    path: __dirname + '/../../resource/phrase.txt',
+    path: __dirname + '/../../resource/wordbook/phrase.txt',
     func(str) {
       const arr = str.split(/[\r\n]/g).filter(v => v)
       const wordList = []
@@ -29,7 +29,7 @@ const wordbook = [
   },
   {
     name: '常用词缀',
-    path: __dirname + '/../../resource/affix.txt',
+    path: __dirname + '/../../resource/wordbook/affix.txt',
     func(str) {
       const arr = str.split(/[\r\n]/g).filter(v => v)
       const wordList = []

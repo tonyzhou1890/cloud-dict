@@ -49,17 +49,6 @@ export default class DictContent extends HTMLElement {
               }
             }
             // 音频
-            // if (el.attributes.href?.value?.startsWith('data:audio')) {
-            //   let sound = el.attributes.href?.value
-            //   el.setAttribute('href', 'javascript: void(0)')
-            //   el.onclick = () => {
-            //     this.dispatchEvent(new CustomEvent(events.clickSound, {
-            //       detail: {
-            //         sound
-            //       }
-            //     }))
-            //   }
-            // }
             if (el.attributes.href?.value?.startsWith('sound://')) {
               let sound = el.attributes.href?.value
               el.setAttribute('href', 'javascript: void(0)')

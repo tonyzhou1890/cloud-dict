@@ -1,6 +1,20 @@
+const fs = require('fs')
+const path = require('path')
+const crypto = require('crypto');
+
 // 深拷贝
 function cloneDeep(data) {
   return JSON.parse(JSON.stringify(data))
+}
+
+/**
+ * md5 加密
+ * @param {string} str 
+ * @returns 
+ */
+function cryptMd5Str(str) {
+  var md5 = crypto.createHash('md5');
+  return md5.update(str).digest('hex');
 }
 
 module.exports = {
@@ -70,5 +84,148 @@ module.exports = {
     for (let key in used) {
       console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
     }
+  },
+
+  /**
+   * 获取指定文件夹下的词典
+   * 目前只支持两层。（文件夹/词典文件夹/词典文件）
+   * @param {string} pathname
+   * @returns Array
+   * @example
+   * ```
+   * [
+   *   {
+   *     dir: '',
+   *     name: '',
+   *     mdx: '',
+   *     mdd: '',
+   *     js: '',
+   *     css: '',
+   *     sort: number,
+   *     mdxOptions: {
+   *       keyCaseSensitive: bool,
+   *       stripKey: bool
+   *     },
+   *     mddOptions: {
+   *       keyCaseSensitive: bool,
+   *       stripKey: bool
+   *     }
+   *   }
+   * ]
+   * ```
+   */
+  getDictFile(pathname) {
+    const dicts = []
+    // 读取目录下的词典目录
+    const dirs = fs.readdirSync(pathname)
+    console.log(dirs)
+    dirs.map(d => {
+      const dpath = path.join(pathname, d)
+      const stat = fs.statSync(dpath)
+      // 如果是目录，则继续
+      if (stat.isDirectory()) {
+        // 词典配置
+        const dictConfig = {
+          path: dpath,
+          dir: d,
+          name: '',
+          dictId: '',
+          mdx: [],
+          mdxConfig: {},
+          mdd: [],
+          mddConfig: {},
+          // js: [],
+          css: [],
+          sort: Infinity
+        }
+        // 读取词典文件名
+        const dictFiles = fs.readdirSync(dpath)
+        // 文件归类
+        dictFiles.map(f => {
+          if (f.endsWith('.mdx')) {
+            dictConfig.mdx.push(f)
+          } else if (f.endsWith('.mdd')) {
+            dictConfig.mdd.push(f)
+            // } else if (f.endsWith('.js')) {
+            //   dictConfig.js.push(f)
+          } else if (f.endsWith('.css')) {
+            dictConfig.css.push(f)
+          }
+        })
+        // mdd 和 mdx 多文件检测
+        if (dictConfig.mdx.length > 1 || dictConfig.mdd.length > 1) {
+          console.warn('暂不支持多词典文件')
+          return
+        }
+        if (dictConfig.mdx.length === 0) return
+
+        dictConfig.mdx = path.join(dpath, dictConfig.mdx[0])
+        if (dictConfig.mdd[0]) {
+          dictConfig.mdd = path.join(dpath, dictConfig.mdd[0])
+        } else {
+          dictConfig.mdd = null
+        }
+
+        // 词典目录名称、排序解析
+        const reg = /\[[^\[\]]*\]/g
+        dictConfig.name = dictConfig.dir.replace(reg, '').trim()
+        dictConfig.dictId = cryptMd5Str(dictConfig.name)
+        const conf = dictConfig.dir.match(reg)
+        if (Array.isArray(conf) && Array.length) {
+          conf.map(item => {
+            item = item.replace(/[\[\]]/g, '').trim().toLowerCase()
+            console.log(item)
+            // 排序
+            if (/^\d*$/.test(item)) {
+              dictConfig.sort = Number(item)
+            }
+            // 忽略
+            if (['disabled', 'disable', 'ignore'].includes(item)) {
+              dictConfig.disabled = true
+            }
+          })
+        }
+        if (dictConfig.disabled) return
+          // 词典配置解析
+          ;['mdx', 'mdd'].map(key => {
+            const keyPath = dictConfig[key]
+            if (keyPath) {
+              const basename = path.basename(keyPath, `.${key}`)
+              const conf = basename.match(reg)
+              if (Array.isArray(conf) && Array.length) {
+                conf.map(item => {
+                  item = item.replace(/\[\]/, '').trim().toLowerCase()
+                  // 大小写是否敏感
+                  if (item === 'keycasesensitive') {
+                    dictConfig[`${key}Config`].keyCaseSensitive = true
+                  } else if (item === 'stripkey') {
+                    dictConfig[`${key}Config`].stripKey = true
+                  }
+                })
+              }
+            }
+          })
+        // css 和 js 文件读取
+        dictConfig.css.map((key, index) => {
+          const file = fs.readFileSync(path.join(dpath, key)).toString('base64')
+          dictConfig.css[index] = {
+            key,
+            definition: file
+          }
+        })
+        // dictConfig.js.map((key, index) => {
+        //   const file = fs.readFileSync(path.join(dpath, key)).toString('base64')
+        //   dictConfig.js[index] = {
+        //     key,
+        //     definition: file
+        //   }
+        // })
+        dicts.push(dictConfig)
+      }
+    })
+    dicts.sort((a, b) => {
+      return a.sort - b.sort
+    })
+    return dicts
   }
 }

@@ -3,9 +3,9 @@
 
 
 "@babel/runtime@^7.14.6":
-  version "7.18.3"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.3.tgz#c7b654b57f6f63cf7f8b418ac9ca04408c4579f4"
-  integrity sha512-38Y8f7YUhce/K7RMwTp7m0uCumpv9hZkitCbBClqQIow1qSbCvGkcegKOXpEWCQLfWmevgRiWokZ1GkpfhbZug==
+  version "7.18.9"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.9.tgz#b4fcfce55db3d2e5e080d2490f608a3b9f407f4a"
+  integrity sha512-lkqXDcvlFT5rvEjiu6+QYO+1GXrEHRo2LOtS7E4GtX5ESIZOgepqsZBVIj6Pv+a6zqsya9VCgiK1KAK4BvJDAw==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -570,10 +570,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-mdict-js@^1.0.1:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/mdict-js/-/mdict-js-1.0.2.tgz#1d7557cc79590464fdc7de5f7ba9b45e99bdcfe7"
-  integrity sha512-A6xGOOZlDCf1bfuNxLo897Dpq5NfGXqEej36rVC3lG8MkgwFH9/ZdT0NtNHvlr7BUjD/Iji4dWH5Hq16N8Md7Q==
+mdict-js@^10.0.0:
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/mdict-js/-/mdict-js-10.0.1.tgz#d3664fa0c9ba6fd4cc5106bcf8724168b86706fb"
+  integrity sha512-WfltwJ+H2pe7Hl1NGBVUE5LRZGtq2MtzNWin1cfiSGgPu/tLz+f9K6iVIrHk34RfPcIKLBNiF6bzJZ3LGmB7zg==
   dependencies:
     "@babel/runtime" "^7.14.6"
     "@xmldom/xmldom" "^0.7.5"
@@ -760,7 +760,7 @@ raw-body@2.3.3:
 read-chunk@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/read-chunk/-/read-chunk-2.1.0.tgz#6a04c0928005ed9d42e1a6ac5600e19cbc7ff655"
-  integrity sha1-agTAkoAF7Z1C4aasVgDhnLx/9lU=
+  integrity sha512-QQqB2O9KX/BnztP1xkTRsBxABcWHCXTqQYmEm/DdNId1nw+leKkZvV/g5oCKUrXolGtU3zouoIxMLToAYyDgDw==
   dependencies:
     pify "^3.0.0"
     safe-buffer "^5.1.1"
@@ -891,7 +891,7 @@ string_decoder@~1.1.1:
 text-encoding@^0.6.4:
   version "0.6.4"
   resolved "https://registry.yarnpkg.com/text-encoding/-/text-encoding-0.6.4.tgz#e399a982257a276dae428bb92845cb71bdc26d19"
-  integrity sha1-45mpgiV6J22uQou5KEXLcb3CbRk=
+  integrity sha512-hJnc6Qg3dWoOMkqP53F0dzRIgtmsAge09kxUIqGrEUS4qr5rWLckGYaQAVr+opBrIMRErGgy6f5aPnyPpyGRfg==
 
 transformers@2.1.0:
   version "2.1.0"
@@ -941,7 +941,7 @@ unpipe@1.0.0, unpipe@~1.0.0:
 util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
-  integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
+  integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
 
 utils-merge@1.0.1:
   version "1.0.1"
