@@ -144,6 +144,8 @@ module.exports = {
         dictFiles.map(f => {
           if (f.endsWith('.mdx')) {
             dictConfig.mdx.push(f)
+            // mdx 文件默认 stripkey 为 false，因为很多字典的 stripekey 不准确
+            dictConfig.mdxConfig.stripKey = false
           } else if (f.endsWith('.mdd')) {
             dictConfig.mdd.push(f)
             // } else if (f.endsWith('.js')) {
@@ -174,7 +176,6 @@ module.exports = {
         if (Array.isArray(conf) && Array.length) {
           conf.map(item => {
             item = item.replace(/[\[\]]/g, '').trim().toLowerCase()
-            console.log(item)
             // 排序
             if (/^\d*$/.test(item)) {
               dictConfig.sort = Number(item)
@@ -194,12 +195,14 @@ module.exports = {
               const conf = basename.match(reg)
               if (Array.isArray(conf) && Array.length) {
                 conf.map(item => {
-                  item = item.replace(/\[\]/, '').trim().toLowerCase()
+                  item = item.replace(/[\[\]]/g, '').trim().toLowerCase()
+                  // 配置项可能是 a=b 这种形式
+                  const itemPair = item.split('=').filter(v => v)
                   // 大小写是否敏感
-                  if (item === 'keycasesensitive') {
-                    dictConfig[`${key}Config`].keyCaseSensitive = true
-                  } else if (item === 'stripkey') {
-                    dictConfig[`${key}Config`].stripKey = true
+                  if (itemPair[0] === 'keycasesensitive') {
+                    dictConfig[`${key}Config`].keyCaseSensitive = itemPair[1] === 'false' ? false : true
+                  } else if (itemPair[0] === 'stripkey') {
+                    dictConfig[`${key}Config`].stripKey = itemPair[1] === 'false' ? false : true
                   }
                 })
               }
