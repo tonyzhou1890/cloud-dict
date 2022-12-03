@@ -57,6 +57,11 @@ function style(entry, ctx, config) {
   if (!ctx.mdd && ctx.css.length === 0) return entry
 
   const reg = /<link.*?href="(.*?)".*?>/g
+  // 如果内容没有检测到 css 引用，并且存在外部 css，则添加对应的标签
+  if (!reg.test(entry.definition) && ctx.css?.length) {
+    entry.definition = ctx.css.map(v => v.text).join('') + entry.definition
+  }
+  // 样式标签处理流程
   entry.definition = entry.definition.replace(reg, (str, file) => {
     if (file) {
       // 先查询外部 css
@@ -86,6 +91,55 @@ function style(entry, ctx, config) {
 
     return str
   })
+  
+  return entry
+}
+
+/**
+ * 处理脚本
+ * @param {*} entry 
+ * @param {*} ctx 
+ * @param {object} config
+ */
+ function script(entry, ctx, config) {
+  if (!ctx.mdd && ctx.js.length === 0) return entry
+
+  const reg = /<script.*?src="(.*?)".*?>(<\/script>)?/g
+  // 如果内容没有检测到 js 引用，并且存在外部 js，则添加对应的标签
+  if (!reg.test(entry.definition) && ctx.css?.length) {
+    entry.definition = ctx.js.map(v => v.text).join('') + entry.definition
+  }
+  // 脚本标签处理流程
+  entry.definition = entry.definition.replace(reg, (str, file) => {
+    if (file) {
+      // 先查询外部 js
+      let result = ctx.js?.find(v => v.key === file)
+      // 查询
+      if (!result) {
+        result = ctx.mdd.lookup(`\\${file}`)
+      }
+
+      if (result.definition) {
+        entry.resource[file] = {
+          type: 'script',
+          suffix: 'js',
+          definition: result.definition
+        }
+        return str.replace(file, (str2, img2) => {
+          // 替换为 base64
+          if (config.replace !== false) {
+            return `data:text/javascript;base64,${result.definition}`
+          } else {
+            // 或者仅仅规范化原字符串
+            return `${file}`
+          }
+        })
+      }
+    }
+
+    return str
+  })
+  
   return entry
 }
 
@@ -136,5 +190,6 @@ function sound(entry, ctx, config) {
 module.exports = {
   image,
   style,
+  // script,
   sound
 }

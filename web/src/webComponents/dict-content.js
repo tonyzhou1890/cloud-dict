@@ -10,6 +10,7 @@ export default class DictContent extends HTMLElement {
     super()
     const shadowRoot = this.attachShadow({ mode: 'open' })
     shadowRoot.innerHTML = ``
+    // this.window = new Proxy(window)
   }
 
   get text() {
@@ -26,7 +27,12 @@ export default class DictContent extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'text') {
-      this.shadowRoot.innerHTML = newValue
+      this.shadowRoot.innerHTML = `
+      <script type="text/javascript" src="https://kod.dowhat.top/data/User/admin/home/test/script.js" />
+      <script type="text/javascript">
+        alert()
+      </script>
+      ${newValue}`
       setTimeout(() => {
         // a 标签元素处理
         const anchorEls = this.shadowRoot.querySelectorAll('a')

@@ -112,6 +112,8 @@
             </span>
           </div>
         </div>
+        <!-- 无结果提示 -->
+        <div v-if="(wordResultList.length === 0 && tipList.length === 0)" class="result-empty">暂无结果</div>
       </div>
     </div>
   </div>

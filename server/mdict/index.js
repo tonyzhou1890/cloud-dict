@@ -171,6 +171,10 @@ class Dict {
     data.result.word = word
     // 如果有释义，则对词条进行处理
     if (data.result.definition) {
+      // 处理跳转（词条内容为：@@@LINK=xxx）
+      if (data.result.definition.startsWith('@@@LINK')) {
+        return this.lookupWithCtx(data.result.definition.split(/[=\r\n\0xx]/)[1], ctx, config)
+      }
       // data.result.rawDefinition = data.result.definition
       data.result = this._processData(data.result, ctx, config)
     }
@@ -227,18 +231,24 @@ class Dict {
 
   /**
    * 模糊搜索
-   * @param word string 单词
-   * @param fuzzySize number 最多纪录数
-   * @param edGap number 编辑距离
+   * @param {string} word 单词
+   * @param {number} fuzzySize 最多纪录数
+   * @param {number} edGap 编辑距离
+   * @param {string[] | null} dictIds 查询词典
+   * @param {number} max 最多条目
    */
-  fuzzySearch(word, fuzzySize = 20, edGap = 5, dictIds) {
+  fuzzySearch(word, fuzzySize = 10, edGap = 5, dictIds, max = 10) {
+    let count = 0
     return this.actionInList((item) => {
+      if (count >= max) return false
       if (!Array.isArray(dictIds) || dictIds.includes(item.dictId)) {
-        return {
+        const res = {
           dictName: item.name,
           dictId: item.dictId,
           result: item.mdx.fuzzy_search(word, fuzzySize, edGap)
         }
+        count += res.result?.length ?? 0
+        return res
       } else {
         return false
       }

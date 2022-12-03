@@ -134,7 +134,7 @@ module.exports = {
           mdxConfig: {},
           mdd: [],
           mddConfig: {},
-          // js: [],
+          js: [],
           css: [],
           sort: Infinity
         }
@@ -148,8 +148,8 @@ module.exports = {
             dictConfig.mdxConfig.stripKey = false
           } else if (f.endsWith('.mdd')) {
             dictConfig.mdd.push(f)
-            // } else if (f.endsWith('.js')) {
-            //   dictConfig.js.push(f)
+            } else if (f.endsWith('.js')) {
+              dictConfig.js.push(f)
           } else if (f.endsWith('.css')) {
             dictConfig.css.push(f)
           }
@@ -210,19 +210,21 @@ module.exports = {
           })
         // css 和 js 文件读取
         dictConfig.css.map((key, index) => {
-          const file = fs.readFileSync(path.join(dpath, key)).toString('base64')
+          const file = fs.readFileSync(path.join(dpath, key)).toString('utf-8').replace(/[\r\n]/g, '')
           dictConfig.css[index] = {
             key,
-            definition: file
+            definition: Buffer.from(file).toString('base64'),
+            text: file
           }
         })
-        // dictConfig.js.map((key, index) => {
-        //   const file = fs.readFileSync(path.join(dpath, key)).toString('base64')
-        //   dictConfig.js[index] = {
-        //     key,
-        //     definition: file
-        //   }
-        // })
+        dictConfig.js.map((key, index) => {
+          const file = fs.readFileSync(path.join(dpath, key)).toString('utf-8')
+          dictConfig.js[index] = {
+            key,
+            definition: Buffer.from(file).toString('base64'),
+            text: file
+          }
+        })
         dicts.push(dictConfig)
       }
     })
