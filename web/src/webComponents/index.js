@@ -1,5 +1,5 @@
-import DictContent from './dict-content'
+import DictContentIframe from './dict-content-iframe'
 
 export default {
-  DictContent
+  DictContentIframe
 }

@@ -90,11 +90,11 @@
               class="dict-content-wrapper"
               :class="item.expand === false ? 'shrink' : ''"
             >
-              <dict-content
-                :text="item.result.definition"
-                @clickEntry="handleLink"
-                @clickSound="(e) => handleSound(item.dictId, e)"
-              ></dict-content>
+              <iframe
+                class="content-iframe"
+                :id="`content-${item.dictId}`"
+                :src="`/word-content?dictId=${item.dictId}&word=${item.result.word}`"
+              />
             </div>
           </section>
         </div>
@@ -315,11 +315,9 @@ export default {
       // handleSearch();
     }
 
+    window._clickEntry = handleLink
+
     // 处理音频
-    // function handleSound(e) {
-    //   const audio = new Audio(e.detail.sound);
-    //   audio.autoplay = true;
-    // }
     // 音频变量
     const audio = new Audio()
     audio.autoplay = true
@@ -339,6 +337,8 @@ export default {
           ElMessage.error(e);
         });
     }
+
+    window._clickSound = handleSound
 
     // 处理显隐
     function handleExpand(index) {
@@ -379,6 +379,29 @@ export default {
         ).catch(() => {});
       }
     }
+
+    // 设置查询结果内容
+    function setWordData(dictId) {
+      let wordData = ''
+      wordResultList.value.map(item => {
+        if (item.dictId === dictId) {
+          wordData = item.result.definition
+        }
+      })
+      return wordData
+    }
+
+    window._getWordData = setWordData
+
+    // 设置 iframe 高度
+    function setIframeHeight(dictId, height) {
+      const el = document.querySelector(`#content-${dictId}`)
+      if (el) {
+        el.style.height = `${height + 10}px`
+      }
+    }
+
+    window._setIframeHeight = setIframeHeight
 
     // 菜单
     const menuList = [{ key: "words", text: "单词表" }];
@@ -638,6 +661,11 @@ export default {
         &.shrink {
           height: 0;
         }
+      }
+      .content-iframe {
+        width: 100%;
+        overflow: auto;
+        border: none;
       }
     }
   }

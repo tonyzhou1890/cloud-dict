@@ -13,6 +13,13 @@ const routes = [
     component: () => import('./pages/search/index.vue')
   },
   {
+    path: '/content-iframe',
+    component: () => import('./pages/content-iframe.vue'),
+    meta: {
+      isWhite: true
+    }
+  },
+  {
     path: '/export',
     component: () => import('./pages/export')
   }
@@ -25,7 +32,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   // 获取字典列表
-  if (store.dictList.length === 0) {
+  if (store.dictList.length === 0 && !to.meta?.isWhite) {
     const { data } = await dictList({ all: true })
     if (data.code === 0) {
       store.dictList = data.data

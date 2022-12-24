@@ -101,7 +101,7 @@ function style(entry, ctx, config) {
  * @param {*} ctx 
  * @param {object} config
  */
- function script(entry, ctx, config) {
+function script(entry, ctx, config) {
   if (!ctx.mdd && ctx.js.length === 0) return entry
 
   const reg = /<script.*?src="(.*?)".*?>(<\/script>)?/g
@@ -190,6 +190,6 @@ function sound(entry, ctx, config) {
 module.exports = {
   image,
   style,
-  // script,
+  script,
   sound
 }
