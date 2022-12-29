@@ -257,7 +257,7 @@ class Dict {
 
   /**
    * 词典单词表
-   * @param {*} dictId 
+   * @param {string} dictId 
    */
   keys(dictId) {
     if (!dictId) {
@@ -273,8 +273,8 @@ class Dict {
 
   /**
    * 获取音频
-   * @param {*} dictId 
-   * @param {*} file 
+   * @param {string} dictId 
+   * @param {string} file 
    * @returns 
    */
   getSound(dictId, file) {
@@ -290,6 +290,28 @@ class Dict {
         return `data:audio/${suffix};base64,${result.definition}`
       } else {
         return ''
+      }
+    }
+  }
+
+  /**
+   * 获取图片
+   * @param {string} dictId 
+   * @param {string} file 
+   * @returns 
+   */
+  getImage(dictId, file) {
+    const targetDict = this.dict.find(v => v.dictId === dictId)
+    if (!targetDict || targetDict.disabled || !targetDict.mdd) {
+      return ''
+    } else {
+      // 查询
+      let result = targetDict.mdd.lookup(`${file.replace(/\//g, '\\')}`)
+
+      if (result.definition) {
+        return Buffer.from(result.definition, 'base64')
+      } else {
+        return null
       }
     }
   }

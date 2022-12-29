@@ -1,4 +1,5 @@
 const { getSuffix } = require('../utils/util')
+const fs = require('fs')
 
 /**
  * 处理图片
@@ -6,9 +7,47 @@ const { getSuffix } = require('../utils/util')
  * @param {*} ctx 词典
  * @param {object} config
  */
+// function image(entry, ctx, config = {}) {
+//   if (!ctx.mdd) return entry
+//   // 图标
+//   const reg = /<img.*?src=(.*?)(\s|>|\/>)/g
+//   entry.definition = entry.definition.replace(reg, (str, img) => {
+//     if (img) {
+//       let imgTemp = img.trim()
+//       // \\033E5C32.png
+//       // 部分图片找到的字符串前后存在 \x1E\x1F，要将这两个去掉
+//       imgTemp = imgTemp.replace(/[\x1E\x1F'"]/g, '')
+//       imgTemp = imgTemp.replace('file://', '')
+
+//       let suffix = getSuffix(imgTemp)
+      
+//       // 查询
+//       let result = ctx.mdd.lookup(`\\${imgTemp.replace('/', '\\')}`)
+
+//       if (result.definition) {
+//         entry.resource[imgTemp] = {
+//           type: 'image',
+//           suffix,
+//           definition: result.definition
+//         }
+//         return str.replace(img, (str2, img2) => {
+//           // 替换为 base64
+//           if (config.imageReplace !== false) {
+//             return `"data:image/${suffix};base64,${result.definition}"`
+//           } else {
+//             // 或者仅仅规范化原字符串
+//             return `"${imgTemp}"`
+//           }
+//         })
+//       }
+//     }
+
+//     return str
+//   })
+//   return entry
+// }
 function image(entry, ctx, config = {}) {
   if (!ctx.mdd) return entry
-
   // 图标
   const reg = /<img.*?src=(.*?)(\s|>|\/>)/g
   entry.definition = entry.definition.replace(reg, (str, img) => {
@@ -19,27 +58,9 @@ function image(entry, ctx, config = {}) {
       imgTemp = imgTemp.replace(/[\x1E\x1F'"]/g, '')
       imgTemp = imgTemp.replace('file://', '')
 
-      let suffix = getSuffix(imgTemp)
-
-      // 查询
-      let result = ctx.mdd.lookup(`\\${imgTemp}`)
-
-      if (result.definition) {
-        entry.resource[imgTemp] = {
-          type: 'image',
-          suffix,
-          definition: result.definition
-        }
-        return str.replace(img, (str2, img2) => {
-          // 替换为 base64
-          if (config.imageReplace !== false) {
-            return `"data:image/${suffix};base64,${result.definition}"`
-          } else {
-            // 或者仅仅规范化原字符串
-            return `"${imgTemp}"`
-          }
-        })
-      }
+      return str.replace(img, (str2, img2) => {
+        return `"${imgTemp}?dictId=${ctx.dictId}"`
+      })
     }
 
     return str
@@ -190,6 +211,6 @@ function sound(entry, ctx, config) {
 module.exports = {
   image,
   style,
-  // script,
+  script,
   sound
 }

@@ -36,17 +36,22 @@ export default class DictContent extends HTMLElement {
             if (el.attributes.href?.value?.startsWith('entry://')) {
               let entry = el.attributes.href.value.replace('entry://', '')
               // el.setAttribute('href', 'javascript: void(0)')
-              // 修改为可以通过链接打开--主要是为了中键新窗口打开
-              el.setAttribute('href', `/search?word=${entry}`)
-              // 左键点击事件，触发 clickEntry 事件。屏蔽默认行为。因为页面切换加了动画。左键通过默认行为查询单词效率太低
-              el.onclick = (e) => {
-                this.dispatchEvent(new CustomEvent(events.clickEntry, {
-                  detail: {
-                    entry
-                  }
-                }))
-                e?.preventDefault()
-                console.log(entry)
+              // 跳转连接不是 # 开头的才可以跳转，以 # 开头的链接属于释义内部跳转，暂不支持
+              if (!entry.startsWith('#')) {
+                // 修改为可以通过链接打开--主要是为了中键新窗口打开
+                el.setAttribute('href', `/search?word=${entry}`)
+                // 左键点击事件，触发 clickEntry 事件。屏蔽默认行为。因为页面切换加了动画。左键通过默认行为查询单词效率太低
+                el.onclick = (e) => {
+                  this.dispatchEvent(new CustomEvent(events.clickEntry, {
+                    detail: {
+                      entry
+                    }
+                  }))
+                  e?.preventDefault()
+                  console.log(entry)
+                }
+              } else {
+                el.setAttribute('href', 'javascript: void(0)')
               }
             }
             // 音频
@@ -62,6 +67,15 @@ export default class DictContent extends HTMLElement {
               }
             }
           })
+        // 脚本
+        const scriptEls = this.shadowRoot.querySelectorAll('script')
+        ;[].map.call(scriptEls, el => {
+          if (el.src) {
+            const s = document.createElement('script')
+            s.src = el.src
+            this.shadowRoot.appendChild(s)
+          }
+        })
       }, 0)
     }
   }

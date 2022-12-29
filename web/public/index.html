@@ -9,6 +9,18 @@
   <title>
     <%= htmlWebpackPlugin.options.title %>
   </title>
+  <script>
+    // 检测浏览器是否支持SW
+    if (navigator.serviceWorker != null) {
+      navigator.serviceWorker.register('sw.js', { scope: '/' })
+        .then(function (registartion) {
+          //注册成功
+          console.log('支持sw:', registartion.scope)
+        }).catch(function (err) {
+          console.log('fail')
+        });
+    }
+  </script>
 </head>
 
 <body>

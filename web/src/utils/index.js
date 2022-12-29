@@ -107,6 +107,7 @@ export function base64ToImg(data) {
         return `data:image/${resourceMap[img].suffix};base64,${resourceMap[img].definition}`
       })
     }
+    return str
   })
   return data
 }

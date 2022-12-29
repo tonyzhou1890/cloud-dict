@@ -112,6 +112,20 @@ router.get('/dict/sound', function (req, res, next) {
   return res.send(response)
 })
 
+/** 获取图片 */
+router.get('/dict/image', function (req, res, next) {
+  let response = ''
+  const vali = getSoundSchema.validate(req.query, { allowUnknown: true })
+  if (vali.error) {
+    response = ''
+  } else {
+    const data = dictStore.getImage(req.query.dictId, req.query.file)
+
+    response = data
+  }
+  return res.send(response)
+})
+
 /**
  * 词书列表
  */
