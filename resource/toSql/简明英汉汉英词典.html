@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成《简明英汉汉英词典》sql</title>
+  <style>
+    #loading {
+      display: none;
+    }
+
+    #download {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="getBtn">开始获取</button>
+  <p id="loading">loading……</p>
+  <button id="download">下载</button>
+  <script>
+    let getBtnEl = document.querySelector('#getBtn')
+    getBtnEl.addEventListener('click', getData)
+
+    let loadingEl = document.querySelector('#loading')
+    let downloadEl = document.querySelector('#download')
+    downloadEl.addEventListener('click', download)
+
+    // 词典信息
+    let dict = null
+
+    // 单词记录
+    let record = []
+
+    // 获取数据
+    let getLoading = false
+
+    function getData() {
+      if (getLoading) return
+
+      getLoading = true
+
+
+      loadingEl.style.display = 'initial'
+
+      downloadEl.style.display = 'none'
+
+      // 获取词典基本信息
+      fetch('http://localhost:8500/dict/list?all=true')
+        .then(data => {
+          data.json()
+            .then(jsonData => {
+              dict = jsonData.data?.find(v => v.name.includes('简明英汉汉英词典'))
+              if (!dict) {
+                return alert('词典不存在')
+              }
+
+              // 获取全部 key
+              fetch(`http://localhost:8500/dict/keys?dictId=${dict.id}`)
+                .then(data => {
+                  data.json()
+                    .then(jsonData => {
+                      getDictContent(jsonData.data.filter(item => {
+                        // 包含逗号的单词过滤掉
+                        return !item.includes(',')
+                      }), dict.id)
+                    })
+                })
+              // getDictContent("the,be,and,of,a,in,to,have,it,I,that,for,you".split(','), dict.id)
+            })
+        })
+    }
+
+    // 获取所有单词内容
+    function getDictContent(keys, dictId) {
+      keys.map((item, idx) => {
+        if (!item) {
+          console.log(item, idx)
+        }
+      })
+      // 分批查询
+      Promise.all(new Array((keys.length / 10000 + 1) >> 0).fill(0).map((_, idx) => {
+        return new Promise((resolve, reject) => {
+          fetch(`http://localhost:8500/query-batch`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              dictId,
+              words: keys.slice(idx * 10000, (idx + 1) * 10000).join(',')
+            })
+          })
+            .then(data => {
+              data.json()
+                .then(jsonData => {
+                  resolve(jsonData.data)
+                })
+                .catch(e => {
+                  reject(e)
+                })
+            })
+            .catch(e => {
+              reject(e)
+            })
+        })
+      }))
+        .then(data => {
+          process(data)
+        })
+    }
+
+    // 处理单词内容
+    function process(data) {
+      record = []
+
+      let container = document.createElement('div')
+      container.style.display = 'none'
+      document.body.appendChild(container)
+
+      data.map(batch => {
+        batch.list.map(item => {
+          if (item.definition) {
+            // 去除 css
+            item.definition = item.definition.replace('<link rel="stylesheet" type="text/css" href="sf_cb.css"/>', '')
+            // 生成 dom 结构
+            container.innerHTML = item.definition
+            // 提取信息
+            let recordInfo = {
+              word: '',
+              phonetic: [],
+              content: []
+            }
+            let content = container.querySelector('.CX')
+            if (content) {
+              // 当前词性
+              let partOfSpeech = ''
+              // 当前释义
+              let definition = ''
+              for (let i = 0; i < content.childElementCount; i++) {
+                let el = content.children[i]
+                // 单词
+                if (el.className === 'YX') {
+                  recordInfo.word = el.innerText
+                }
+                // 音标
+                if (el.className === 'YB') {
+                  recordInfo.phonetic.push(el.innerText)
+                }
+                // 词性
+                if (el.className === 'DX') {
+                  partOfSpeech = el.innerText
+                }
+                // 释义
+                if (el.className === 'JX') {
+                  if (el.querySelector('.entryNum')) {
+                    el.querySelector('.entryNum').innerText = ''
+                  }
+                  if (el.querySelector('.entryDot')) {
+                    el.querySelector('.entryDot').innerText = ''
+                  }
+
+                  definition = el.innerText.trim()
+                  recordInfo.content.push({
+                    partOfSpeech,
+                    definition,
+                    examples: []
+                  })
+                }
+                // 例句
+                if (el.className === 'LJ') {
+                  let example = {}
+                  example.origin = el.querySelector('.LY')?.innerText
+                  example.translation = el.querySelector('.LS')?.innerText
+                  recordInfo.content[recordInfo.content.length - 1].examples.push(example)
+                }
+              }
+              record.push(recordInfo)
+            }
+          }
+          else {
+            console.log(item)
+          }
+        })
+      })
+      document.body.removeChild(container)
+      console.log(record)
+      getLoading = false
+
+      loadingEl.style.display = 'none'
+      downloadEl.style.display = 'initial'
+    }
+
+    // 下载 sql
+    function download() {
+      // 词条记录，每个释义一条
+      let newRecordList = []
+      // 例句记录
+      let exampleMap = new Map()
+      // 最长单词
+      let maxWordLength = 0
+      // 最长音标
+      let maxPhoneticLength = 0
+      // 最长词性
+      let maxPartOfSpeech = 0
+      // 最长释义
+      let maxDefinition = 0
+      // 最长原句
+      let maxOrigin = 0
+      // 最长翻译
+      let maxTranslation = 0
+      // 最长单词例句引用
+      let maxWordExampleLinks = 0
+      // 最长例句单词引用
+      let maxExampleWordLinks = 0
+      // 最长元信息 key
+      let maxMetaKeyLength = 0
+      // 最长元信息 value
+      let maxMetaValueLength = 0
+      // 单词例句拆分
+      record.map(item => {
+        item.content.map(contentItem => {
+          let newRecord = {
+            id: newRecordList.length + 1,
+            word: item.word,
+            phonetic: item.phonetic.join(','),
+            partOfSpeech: contentItem.partOfSpeech,
+            definition: contentItem.definition,
+          }
+          if (newRecord.word.length > maxWordLength) {
+            maxWordLength = newRecord.word.length
+          }
+          if (newRecord.phonetic.length > maxPhoneticLength) {
+            maxPhoneticLength = newRecord.phonetic.length
+          }
+          if (newRecord.partOfSpeech.length > maxPartOfSpeech) {
+            maxPartOfSpeech = newRecord.partOfSpeech.length
+          }
+          if (newRecord.definition.length > maxDefinition) {
+            maxDefinition = newRecord.definition.length
+          }
+          let exampleLinks = []
+          // 处理释义
+          contentItem.examples.map(example => {
+            let existedExample = exampleMap.get(example.origin)
+            // 已经存在相同例句，添加标志
+            if (existedExample) {
+              exampleLinks.push(existedExample)
+              existedExample.wordLinks.push(newRecord.id)
+            } else {
+              existedExample = {
+                ...example,
+                wordLinks: [newRecord.id]
+              }
+              exampleMap.set(example.origin, existedExample)
+              exampleLinks.push(existedExample)
+              if (example.origin.length > maxOrigin) {
+                maxOrigin = example.origin.length
+              }
+              if (example.translation.length > maxTranslation) {
+                maxTranslation = example.translation.length
+              }
+            }
+          })
+
+          newRecord.exampleLinks = exampleLinks
+
+          newRecordList.push(newRecord)
+        })
+      })
+      // 例句处理
+      let exampleList = []
+      exampleMap.forEach(item => {
+        exampleList.push(item)
+      })
+      exampleList.map((item, idx) => {
+        item.id = idx + 1
+        item.wordLinks = item.wordLinks.join(',')
+        if (item.wordLinks.length > maxExampleWordLinks) {
+          maxExampleWordLinks = item.wordLinks.length
+        }
+      })
+      // 词条例句连接处理
+      newRecordList.map(item => {
+        item.exampleLinks = item.exampleLinks.map(e => e.id).join(',')
+        if (item.exampleLinks.length > maxWordExampleLinks) {
+          maxWordExampleLinks = item.exampleLinks.length
+        }
+      })
+      // 元信息
+      Object.keys(dict.info.header).map(key => {
+        if (key.length > maxMetaKeyLength) {
+          maxMetaKeyLength = key.length
+        }
+        if (dict.info.header[key].length > maxMetaValueLength) {
+          maxMetaValueLength = dict.info.header[key].length
+        }
+      })
+      // 生成 sql
+      let sql = `
+        SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+        START TRANSACTION;
+        SET time_zone = "+00:00";
+
+        --
+        -- 数据库： dict
+        --
+
+        --
+        -- 表的结构 metainfo
+        --
+
+        CREATE TABLE metainfo (
+          id int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id字段',
+          meta_key varchar(${maxMetaKeyLength + 5}) NOT NULL,
+          meta_value varchar(${maxMetaValueLength + 5}) DEFAULT NULL,
+          PRIMARY KEY(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='元信息表';
+        `
+      if (maxMetaKeyLength) {
+        sql += `
+          --
+          -- 转存表中的数据 metainfo
+          --
+
+          INSERT INTO metainfo (meta_key, meta_value) VALUES
+          ${Object.keys(dict.info.header).map((key, idx) => {
+          const value = dict.info.header[key]
+          return '(' + ["'" + key + "'", "'" + value + "'"].join() + ')'
+        }).join(',')};
+        `
+      }
+
+      sql += `
+        --
+        -- 表的结构 words
+        --
+
+        CREATE TABLE words (
+          id int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id字段',
+          word varchar(${maxWordLength + 10}) NOT NULL COMMENT '单词',
+          phonetic varchar(${maxPhoneticLength + 10}) DEFAULT NULL COMMENT '音标，逗号分隔',
+          part_of_speech varchar(${maxPartOfSpeech + 10}) DEFAULT NULL COMMENT '词性',
+          definition varchar(${maxDefinition + 10}) DEFAULT NULL COMMENT '释义',
+          example_links varchar(${maxWordExampleLinks + 10}) DEFAULT NULL COMMENT '例句 id 引用，逗号分隔',
+          PRIMARY KEY(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单词表';
+        `
+
+      if (newRecordList.length) {
+        sql += `
+          --
+          -- 转存表中的数据 words
+          --
+
+          INSERT INTO words (word, phonetic, part_of_speech, definition, example_links) VALUES
+          ${newRecordList.map(item => {
+          return '(' + ["'" + item.word.replace(/'/g, '\\\'') + "'", "'" + item.phonetic.replace(/'/g, '\\\'') + "'", "'" + item.partOfSpeech.replace(/'/g, '\\\'') + "'", "'" + item.definition.replace(/'/g, '\\\'') + "'", "'" + item.exampleLinks.replace(/'/g, '\\\'') + "'"].join() + ')'
+        }).join(',')};
+          `
+      }
+
+      sql += `
+        --
+        -- 表的结构 examples
+        --
+
+        CREATE TABLE examples (
+          id int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id字段',
+          origin varchar(${maxOrigin + 10}) NOT NULL COMMENT '例句',
+          translation varchar(${maxTranslation + 10}) DEFAULT NULL COMMENT '翻译',
+          word_links varchar(${maxExampleWordLinks + 10}) DEFAULT NULL COMMENT '单词 id 引用，逗号分隔',
+          PRIMARY KEY(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='例句表';
+        `
+
+      if (exampleList.length) {
+        sql += `
+        --
+        -- 转存表中的数据 examples
+        --
+
+        INSERT INTO examples (origin, translation, word_links) VALUES
+        ${exampleList.map(item => {
+          return '(' + ["'" + item.origin.replace(/'/g, '\\\'') + "'", "'" + item.translation.replace(/'/g, '\\\'') + "'", "'" + item.wordLinks.replace(/'/g, '\\\'') + "'"].join() + ')'
+        }).join(',')};
+          `
+      }
+
+      // 保存文件
+      let file = new Blob([sql], { type: 'application/x-sql' })
+      let link = URL.createObjectURL(file)
+      aEl = document.createElement('a')
+      aEl.download = '简明英汉汉英词典.sql'
+      aEl.style.display = 'none'
+      aEl.href = link
+      document.body.appendChild(aEl)
+      aEl.click()
+      document.body.appendChild(aEl)
+    }
+
+    // 生成 uuid
+    function uuid() {
+      var s = [];
+      var hexDigits = "0123456789abcdef";
+      for (var i = 0; i < 36; i++) {
+        s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
+      }
+      s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
+      s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
+      s[8] = s[13] = s[18] = s[23] = "-";
+
+      var uuid = s.join("");
+      return uuid;
+    }
+  </script>
+</body>
+
+</html>

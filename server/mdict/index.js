@@ -148,36 +148,42 @@ class Dict {
       dictId: ctx.dictId
     }
 
-    // 最多三次查找
-    // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
-    data.result = ctx.mdx.lookup(word)
-    if (!data.result.definition) {
-      // 首字母小写
-      if (util.isLowerCase(word[0])) {
-        // console.log(word)
-        data.result = ctx.mdx.lookup(
-          `${word[0].toUpperCase()}${word.substr(1)}`
-        )
-        if (!data.result.definition) {
-          data.result = ctx.mdx.lookup(word.toUpperCase())
+    try {
+      // 最多三次查找
+      // 1. 原词，2. 如果首字母小写，转首字母大写尝试，还不行就全部大写，3. 如果首字母大写，全部转小写尝试
+      data.result = ctx.mdx.lookup(word)
+      if (!data.result.definition) {
+        // 首字母小写
+        if (util.isLowerCase(word[0])) {
+          // console.log(word)
+          data.result = ctx.mdx.lookup(
+            `${word[0].toUpperCase()}${word.substr(1)}`
+          )
+          if (!data.result.definition) {
+            data.result = ctx.mdx.lookup(word.toUpperCase())
+          }
+        } else if (util.isUpperCase(word[0])) {
+          // 小写
+          data.result = ctx.mdx.lookup(word.toLowerCase())
         }
-      } else if (util.isUpperCase(word[0])) {
-        // 小写
-        data.result = ctx.mdx.lookup(word.toLowerCase())
       }
-    }
 
-    // 加入原词
-    data.result.word = word
-    // 如果有释义，则对词条进行处理
-    if (data.result.definition) {
-      // 处理跳转（词条内容为：@@@LINK=xxx）
-      if (data.result.definition.startsWith('@@@LINK')) {
-        return this.lookupWithCtx(data.result.definition.split(/[=\r\n\0xx]/)[1], ctx, config)
+      // 加入原词
+      data.result.word = word
+      // 如果有释义，则对词条进行处理
+      if (data.result.definition) {
+        // 处理跳转（词条内容为：@@@LINK=xxx）
+        if (data.result.definition.startsWith('@@@LINK')) {
+          return this.lookupWithCtx(data.result.definition.split(/[=\r\n\0xx]/)[1], ctx, config)
+        }
+        data.result.rawDefinition = data.result.definition
+        data.result = this._processData(data.result, ctx, config)
       }
-      // data.result.rawDefinition = data.result.definition
-      data.result = this._processData(data.result, ctx, config)
+    } catch(e) {
+      console.log(e)
+      console.log('word: ', word)
     }
+    
     return data
   }
 

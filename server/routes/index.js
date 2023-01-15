@@ -194,7 +194,6 @@ router.get('/word/list', function (req, res, next) {
 /** 批量查询 */
 router.post('/query-batch', function (req, res, next) {
   let response = {}
-  // console.log(req.body)
   const vali = queryBatchSchema.validate(req.body, { allowUnknown: true })
   if (vali.error) {
     response = {
