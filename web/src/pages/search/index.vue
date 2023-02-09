@@ -3,7 +3,7 @@
     <div class="wrapper" :class="{ sidebar: showWords }">
       <!-- 侧栏 -->
       <div
-        v-show="showWords"
+        v-if="showWords"
         v-loading="wordListLoading"
         class="word-list-panel-wrapper"
         @click.self="hideSidebar"
