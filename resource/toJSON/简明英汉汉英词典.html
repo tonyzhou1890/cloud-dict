@@ -58,21 +58,21 @@
             console.log(dict);
 
             // 获取全部 key
-            // fetch(`http://localhost:8500/dict/keys?dictId=${dict.id}`).then(
-            //   (data) => {
-            //     data.json().then((jsonData) => {
-            //       getDictContent(
-            //         jsonData.data.filter((item) => {
-            //           // 包含逗号的单词过滤掉
-            //           return !item.includes(",");
-            //         }),
-            //         dict.id
-            //       );
-            //     });
-            //   }
-            // );
+            fetch(`http://localhost:8500/dict/keys?dictId=${dict.id}`).then(
+              (data) => {
+                data.json().then((jsonData) => {
+                  getDictContent(
+                    jsonData.data.filter((item) => {
+                      // 包含逗号的单词过滤掉
+                      return !item.includes(",");
+                    }),
+                    dict.id
+                  );
+                });
+              }
+            );
             // getDictContent(
-            //   "the,be,and,of,a,in,to,have,it,I,that,for,you,agree with".split(
+            //   "the,be,and,of,a,in,to,have,it,I,that,for,you,desert,bow,agree with,城市".split(
             //     ","
             //   ),
             //   dict.id
@@ -145,7 +145,10 @@
                 word: "",
                 sections: [], // 一个单词可能有多个音标，比如 bow、desert
               };
-              let content = container.querySelector(".CX");
+              let contents = container.querySelectorAll(".CX");
+              let content = [].map
+                .call(contents ?? [], (c) => [].map.call(c.children, (c) => c))
+                .flat();
               if (content) {
                 // 当前词性
                 let partOfSpeech = "";
@@ -153,8 +156,8 @@
                 let definition = "";
                 // 上一行内容
                 let lastClassName = "";
-                for (let i = 0; i < content.childElementCount; i++) {
-                  let el = content.children[i];
+                for (let i = 0; i < content.length; i++) {
+                  let el = content[i];
                   let currSec =
                     recordInfo.sections[recordInfo.sections.length - 1];
                   // 单词
@@ -164,6 +167,8 @@
                       phonetic: [],
                       content: [],
                     });
+                    partOfSpeech = "";
+                    definition = "";
                     currSec =
                       recordInfo.sections[recordInfo.sections.length - 1];
                   }
@@ -175,6 +180,8 @@
                         phonetic: [],
                         content: [],
                       });
+                      partOfSpeech = "";
+                      definition = "";
                     }
                     currSec =
                       recordInfo.sections[recordInfo.sections.length - 1];
@@ -183,6 +190,7 @@
                   // 词性
                   if (el.className === "DX") {
                     partOfSpeech = el.innerText;
+                    definition = "";
                   }
                   // 释义
                   if (el.className === "JX") {
@@ -219,6 +227,31 @@
           });
         });
         document.body.removeChild(container);
+        // 每个单词词性分组
+        record.map((item) => {
+          item.sections.map((sec) => {
+            const list = sec.content;
+            delete sec.content;
+            sec.partsOfSpeech = [];
+            let partOfSpeech = null;
+            for (let i = 0; i < list.length; i++) {
+              if (
+                !partOfSpeech ||
+                list[i].partOfSpeech !== partOfSpeech.partOfSpeech
+              ) {
+                partOfSpeech = {
+                  partOfSpeech: list[i].partOfSpeech,
+                  definitions: [],
+                };
+                sec.partsOfSpeech.push(partOfSpeech);
+              }
+              partOfSpeech.definitions.push({
+                definition: list[i].definition,
+                examples: list[i].examples,
+              });
+            }
+          });
+        });
         console.log(record);
         getLoading = false;
 
