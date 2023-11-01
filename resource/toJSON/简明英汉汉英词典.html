@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>生成《简明英汉汉英词典》json</title>
+    <style>
+      #loading {
+        display: none;
+      }
+
+      #download {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <button id="getBtn">开始获取</button>
+    <p id="loading">loading……</p>
+    <button id="download">下载</button>
+    <script>
+      let getBtnEl = document.querySelector("#getBtn");
+      getBtnEl.addEventListener("click", getData);
+
+      let loadingEl = document.querySelector("#loading");
+      let downloadEl = document.querySelector("#download");
+      downloadEl.addEventListener("click", download);
+
+      // 词典信息
+      let dict = null;
+
+      // 单词记录
+      let record = [];
+
+      // 获取数据
+      let getLoading = false;
+
+      function getData() {
+        if (getLoading) return;
+
+        getLoading = true;
+
+        loadingEl.style.display = "initial";
+
+        downloadEl.style.display = "none";
+
+        // 获取词典基本信息
+        fetch("http://localhost:8500/dict/list?all=true").then((data) => {
+          data.json().then((jsonData) => {
+            dict = jsonData.data?.find((v) =>
+              v.name.includes("简明英汉汉英词典")
+            );
+            if (!dict) {
+              return alert("词典不存在");
+            }
+            console.log(dict);
+
+            // 获取全部 key
+            // fetch(`http://localhost:8500/dict/keys?dictId=${dict.id}`).then(
+            //   (data) => {
+            //     data.json().then((jsonData) => {
+            //       getDictContent(
+            //         jsonData.data.filter((item) => {
+            //           // 包含逗号的单词过滤掉
+            //           return !item.includes(",");
+            //         }),
+            //         dict.id
+            //       );
+            //     });
+            //   }
+            // );
+            // getDictContent(
+            //   "the,be,and,of,a,in,to,have,it,I,that,for,you,agree with".split(
+            //     ","
+            //   ),
+            //   dict.id
+            // );
+          });
+        });
+      }
+
+      // 获取所有单词内容
+      function getDictContent(keys, dictId) {
+        keys.map((item, idx) => {
+          if (!item) {
+            console.log(item, idx);
+          }
+        });
+        // 分批查询
+        Promise.all(
+          new Array((keys.length / 10000 + 1) >> 0).fill(0).map((_, idx) => {
+            return new Promise((resolve, reject) => {
+              fetch(`http://localhost:8500/query-batch`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  dictId,
+                  words: keys.slice(idx * 10000, (idx + 1) * 10000).join(","),
+                }),
+              })
+                .then((data) => {
+                  data
+                    .json()
+                    .then((jsonData) => {
+                      resolve(jsonData.data);
+                    })
+                    .catch((e) => {
+                      reject(e);
+                    });
+                })
+                .catch((e) => {
+                  reject(e);
+                });
+            });
+          })
+        ).then((data) => {
+          process(data);
+        });
+      }
+
+      // 处理单词内容
+      function process(data) {
+        record = [];
+
+        let container = document.createElement("div");
+        container.style.display = "none";
+        document.body.appendChild(container);
+
+        data.map((batch) => {
+          batch.list.map((item) => {
+            if (item.definition) {
+              // 去除 css
+              item.definition = item.definition.replace(
+                '<link rel="stylesheet" type="text/css" href="sf_cb.css"/>',
+                ""
+              );
+              // 生成 dom 结构
+              container.innerHTML = item.definition;
+              // 提取信息
+              let recordInfo = {
+                word: "",
+                sections: [], // 一个单词可能有多个音标，比如 bow、desert
+              };
+              let content = container.querySelector(".CX");
+              if (content) {
+                // 当前词性
+                let partOfSpeech = "";
+                // 当前释义
+                let definition = "";
+                // 上一行内容
+                let lastClassName = "";
+                for (let i = 0; i < content.childElementCount; i++) {
+                  let el = content.children[i];
+                  let currSec =
+                    recordInfo.sections[recordInfo.sections.length - 1];
+                  // 单词
+                  if (el.className === "YX") {
+                    recordInfo.word = el.innerText;
+                    recordInfo.sections.push({
+                      phonetic: [],
+                      content: [],
+                    });
+                    currSec =
+                      recordInfo.sections[recordInfo.sections.length - 1];
+                  }
+                  // 音标
+                  if (el.className === "YB") {
+                    // 如果上一行不是音标，并且也不是单词，说明同一个单词突然出现了新的读音，此时可以视为新的片段
+                    if (lastClassName !== "YB" && lastClassName !== "YX") {
+                      recordInfo.sections.push({
+                        phonetic: [],
+                        content: [],
+                      });
+                    }
+                    currSec =
+                      recordInfo.sections[recordInfo.sections.length - 1];
+                    currSec.phonetic.push(el.innerText);
+                  }
+                  // 词性
+                  if (el.className === "DX") {
+                    partOfSpeech = el.innerText;
+                  }
+                  // 释义
+                  if (el.className === "JX") {
+                    if (el.querySelector(".entryNum")) {
+                      el.querySelector(".entryNum").innerText = "";
+                    }
+                    if (el.querySelector(".entryDot")) {
+                      el.querySelector(".entryDot").innerText = "";
+                    }
+
+                    definition = el.innerText.trim();
+                    currSec.content.push({
+                      partOfSpeech,
+                      definition,
+                      examples: [],
+                    });
+                  }
+                  // 例句
+                  if (el.className === "LJ") {
+                    let example = {};
+                    example.origin = el.querySelector(".LY")?.innerText;
+                    example.translation = el.querySelector(".LS")?.innerText;
+                    currSec.content[currSec.content.length - 1].examples.push(
+                      example
+                    );
+                  }
+                  lastClassName = el.className;
+                }
+                record.push(recordInfo);
+              }
+            } else {
+              console.log(item);
+            }
+          });
+        });
+        document.body.removeChild(container);
+        console.log(record);
+        getLoading = false;
+
+        loadingEl.style.display = "none";
+        downloadEl.style.display = "initial";
+      }
+
+      // 下载
+      function download() {
+        const data = {
+          info: dict.info,
+          records: record,
+        };
+
+        // 保存文件
+        let file = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        let link = URL.createObjectURL(file);
+        aEl = document.createElement("a");
+        aEl.download = "简明英汉汉英词典.json";
+        aEl.style.display = "none";
+        aEl.href = link;
+        document.body.appendChild(aEl);
+        aEl.click();
+        document.body.appendChild(aEl);
+      }
+    </script>
+  </body>
+</html>
