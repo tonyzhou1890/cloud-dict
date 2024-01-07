@@ -1,11 +1,12 @@
 <template>
   <router-view v-slot="{ Component }" class="router-view">
-    <transition
+    <!-- 部分浏览器，比如 via，动画会导致页面出现大面积可滚动空白 -->
+    <!-- <transition
       enter-active-class="animate__animated animate__slideInRight"
       leave-active-class="animate__animated animate__slideOutLeft"
-    >
+    > -->
       <component :is="Component" />
-    </transition>
+    <!-- </transition> -->
   </router-view>
   <el-backtop :right="50" :bottom="50" />
 </template>
